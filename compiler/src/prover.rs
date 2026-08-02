@@ -16,7 +16,10 @@ pub struct VariableAssignment {
 
 impl VariableAssignment {
     pub fn new(name: &str, value: u64) -> Self {
-        VariableAssignment { name: name.to_string(), value: BigUint::from(value) }
+        VariableAssignment {
+            name: name.to_string(),
+            value: BigUint::from(value),
+        }
     }
 }
 
@@ -37,7 +40,10 @@ impl LocalProver {
         for c in &self.r1cs.constraints {
             let eval = |terms: &[(usize, BigUint)], w: &HashMap<String, BigUint>| -> BigUint {
                 terms.iter().fold(BigUint::from(0u64), |acc, (idx, coeff)| {
-                    let name = self.r1cs.vars.iter()
+                    let name = self
+                        .r1cs
+                        .vars
+                        .iter()
                         .find(|(_, v)| v.0 == *idx)
                         .map(|(n, _)| n.clone())
                         .unwrap_or_default();

@@ -113,15 +113,15 @@ struct IntentPattern {
 fn tokenize_arabic(text: &str) -> String {
     // Normalize Arabic: remove diacritics, normalize alef variants
     let normalized = text
-        .replace('أ', "ا")
-        .replace('إ', "ا")
-        .replace('آ', "ا")
+        .replace(['أ', 'إ', 'آ'], "ا")
         .replace('ة', "ه")
         .replace('ى', "ي");
     // Keep only Arabic letters, digits, and spaces
     normalized
         .chars()
-        .filter(|c| c.is_whitespace() || ('\u{0600}'..='\u{06FF}').contains(c) || c.is_ascii_digit())
+        .filter(|c| {
+            c.is_whitespace() || ('\u{0600}'..='\u{06FF}').contains(c) || c.is_ascii_digit()
+        })
         .collect()
 }
 
@@ -129,43 +129,175 @@ fn tokenize_arabic(text: &str) -> String {
 fn intent_patterns() -> Vec<IntentPattern> {
     vec![
         IntentPattern {
-            keywords: vec!["age", "old", "born", "birth", "years old", "over 18", "over 21", "adult", "minor",
-                "عمر", "سن", "بالغ", "مولود", "سنه", "عاما", "عام", "اكبر", "أكبر", "راشد", "قاصر"],
+            keywords: vec![
+                "age",
+                "old",
+                "born",
+                "birth",
+                "years old",
+                "over 18",
+                "over 21",
+                "adult",
+                "minor",
+                "عمر",
+                "سن",
+                "بالغ",
+                "مولود",
+                "سنه",
+                "عاما",
+                "عام",
+                "اكبر",
+                "أكبر",
+                "راشد",
+                "قاصر",
+            ],
             category: ProofCategory::AgeVerification,
         },
         IntentPattern {
-            keywords: vec!["balance", "tokens", "eth", "usdc", "usdt", "coins", "amount", "hold", "holding", "wallet balance", "more than", "at least", "minimum balance",
-                "رصيد", "عملات", "ايثير", "ايثريوم", "محفظه", "محفظة", "امتلك", "لدي", "عندي", "مبلغ"],
+            keywords: vec![
+                "balance",
+                "tokens",
+                "eth",
+                "usdc",
+                "usdt",
+                "coins",
+                "amount",
+                "hold",
+                "holding",
+                "wallet balance",
+                "more than",
+                "at least",
+                "minimum balance",
+                "رصيد",
+                "عملات",
+                "ايثير",
+                "ايثريوم",
+                "محفظه",
+                "محفظة",
+                "امتلك",
+                "لدي",
+                "عندي",
+                "مبلغ",
+            ],
             category: ProofCategory::BalanceThreshold,
         },
         IntentPattern {
-            keywords: vec!["nft", "own", "ownership", "owns", "possess", "belong", "property",
-                "امتلك", "املك", "ملكيه", "ملكية", "اصل", "رمز"],
+            keywords: vec![
+                "nft",
+                "own",
+                "ownership",
+                "owns",
+                "possess",
+                "belong",
+                "property",
+                "امتلك",
+                "املك",
+                "ملكيه",
+                "ملكية",
+                "اصل",
+                "رمز",
+            ],
             category: ProofCategory::OwnershipProof,
         },
         IntentPattern {
-            keywords: vec!["score", "credit", "rating", "grade", "reputation", "karma", "level", "rank",
-                "نقاط", "تصنيف", "درجه", "درجة", "ائتمان", "تقييم", "سمعه", "سمعة", "مستوى", "مستوي"],
+            keywords: vec![
+                "score",
+                "credit",
+                "rating",
+                "grade",
+                "reputation",
+                "karma",
+                "level",
+                "rank",
+                "نقاط",
+                "تصنيف",
+                "درجه",
+                "درجة",
+                "ائتمان",
+                "تقييم",
+                "سمعه",
+                "سمعة",
+                "مستوى",
+                "مستوي",
+            ],
             category: ProofCategory::ScoreThreshold,
         },
         IntentPattern {
-            keywords: vec!["member", "membership", "whitelist", "allowlist", "set", "list", "group", "included in",
-                "عضو", "عضويه", "عضوية", "قائمه", "قائمة", "مجموعه", "مجموعة", "مدرج", "مضمن"],
+            keywords: vec![
+                "member",
+                "membership",
+                "whitelist",
+                "allowlist",
+                "set",
+                "list",
+                "group",
+                "included in",
+                "عضو",
+                "عضويه",
+                "عضوية",
+                "قائمه",
+                "قائمة",
+                "مجموعه",
+                "مجموعة",
+                "مدرج",
+                "مضمن",
+            ],
             category: ProofCategory::SetMembership,
         },
         IntentPattern {
-            keywords: vec!["hash", "preimage", "sha256", "poseidon", "keccak", "commitment",
-                "هاش", "تجزئه", "تجزئة", "التزام"],
+            keywords: vec![
+                "hash",
+                "preimage",
+                "sha256",
+                "poseidon",
+                "keccak",
+                "commitment",
+                "هاش",
+                "تجزئه",
+                "تجزئة",
+                "التزام",
+            ],
             category: ProofCategory::HashPreimage,
         },
         IntentPattern {
-            keywords: vec!["without revealing", "privately", "secret", "hidden", "confidential", "zero knowledge",
-                "بدون كشف", "بدون افشاء", "بدون إفشاء", "سري", "خاص", "مخفي", "خصوصيه", "خصوصية", "معرفه صفريه", "معرفة صفرية"],
+            keywords: vec![
+                "without revealing",
+                "privately",
+                "secret",
+                "hidden",
+                "confidential",
+                "zero knowledge",
+                "بدون كشف",
+                "بدون افشاء",
+                "بدون إفشاء",
+                "سري",
+                "خاص",
+                "مخفي",
+                "خصوصيه",
+                "خصوصية",
+                "معرفه صفريه",
+                "معرفة صفرية",
+            ],
             category: ProofCategory::AttributeProof,
         },
         IntentPattern {
-            keywords: vec!["compute", "calculate", "multiply", "add", "subtract", "formula", "equation",
-                "احسب", "حساب", "ضرب", "جمع", "طرح", "معادله", "معادلة", "عملية"],
+            keywords: vec![
+                "compute",
+                "calculate",
+                "multiply",
+                "add",
+                "subtract",
+                "formula",
+                "equation",
+                "احسب",
+                "حساب",
+                "ضرب",
+                "جمع",
+                "طرح",
+                "معادله",
+                "معادلة",
+                "عملية",
+            ],
             category: ProofCategory::PrivateComputation,
         },
     ]
@@ -234,14 +366,21 @@ fn detect_category(text: &str) -> (ProofCategory, f64) {
 #[allow(dead_code)]
 fn extract_numbers(text: &str) -> Vec<(String, String)> {
     let mut results = Vec::new();
-    let lower = text.to_lowercase();
+    let _lower = text.to_lowercase();
 
     // Convert Arabic-Indic digits to Western
     let arabic_to_western = |ch: char| -> char {
         match ch {
-            '\u{0660}' => '0', '\u{0661}' => '1', '\u{0662}' => '2',
-            '\u{0663}' => '3', '\u{0664}' => '4', '\u{0665}' => '5',
-            '\u{0666}' => '6', '\u{0667}' => '7', '\u{0668}' => '8', '\u{0669}' => '9',
+            '\u{0660}' => '0',
+            '\u{0661}' => '1',
+            '\u{0662}' => '2',
+            '\u{0663}' => '3',
+            '\u{0664}' => '4',
+            '\u{0665}' => '5',
+            '\u{0666}' => '6',
+            '\u{0667}' => '7',
+            '\u{0668}' => '8',
+            '\u{0669}' => '9',
             _ => ch,
         }
     };
@@ -249,8 +388,23 @@ fn extract_numbers(text: &str) -> Vec<(String, String)> {
     let normalized_lower = normalized_text.to_lowercase();
 
     // Pattern: "N tokens/ETH/coins/..."
-    let units = ["eth", "usdc", "usdt", "tokens", "coins", "dai", "btc", "sol", "matic",
-        "ايثير", "عملات", "عمله", "عملة", "دولار", "ريال"];
+    let units = [
+        "eth",
+        "usdc",
+        "usdt",
+        "tokens",
+        "coins",
+        "dai",
+        "btc",
+        "sol",
+        "matic",
+        "ايثير",
+        "عملات",
+        "عمله",
+        "عملة",
+        "دولار",
+        "ريال",
+    ];
 
     // English number extraction
     let words: Vec<&str> = normalized_text.split_whitespace().collect();
@@ -275,9 +429,24 @@ fn extract_numbers(text: &str) -> Vec<(String, String)> {
     // Pattern: "at least N" / "more than N" / "greater than N" / "exceeds N"
     // Arabic: "على الاقل N", "اكثر من N", "يتجاوز N"
     let threshold_prefixes = [
-        "at least", "more than", "greater than", "exceeds", "above", "over", "minimum",
-        "على الاقل", "على الأقل", "اكثر من", "أكثر من", "يتجاوز", "فوق", "اعلى من", "أعلى من",
-        "الحد الادنى", "الحد الأدنى", "يزيد عن",
+        "at least",
+        "more than",
+        "greater than",
+        "exceeds",
+        "above",
+        "over",
+        "minimum",
+        "على الاقل",
+        "على الأقل",
+        "اكثر من",
+        "أكثر من",
+        "يتجاوز",
+        "فوق",
+        "اعلى من",
+        "أعلى من",
+        "الحد الادنى",
+        "الحد الأدنى",
+        "يزيد عن",
     ];
     for prefix in &threshold_prefixes {
         if let Some(pos) = normalized_lower.find(prefix) {
@@ -319,13 +488,22 @@ fn extract_entities(text: &str, category: &ProofCategory) -> Vec<ExtractedEntity
             });
         }
         ProofCategory::BalanceThreshold => {
-            let unit = if lower.contains("eth") { "ETH" }
-                else if lower.contains("usdc") { "USDC" }
-                else if lower.contains("usdt") { "USDT" }
-                else { "tokens" };
+            let unit = if lower.contains("eth") {
+                "ETH"
+            } else if lower.contains("usdc") {
+                "USDC"
+            } else if lower.contains("usdt") {
+                "USDT"
+            } else {
+                "tokens"
+            };
 
             entities.push(ExtractedEntity {
-                name: if unit == "ETH" { "eth_balance".to_string() } else { "token_balance".to_string() },
+                name: if unit == "ETH" {
+                    "eth_balance".to_string()
+                } else {
+                    "token_balance".to_string()
+                },
                 kind: EntityKind::Balance,
                 data_type: DataType::U256,
                 privacy: Privacy::Private,
@@ -498,32 +676,69 @@ fn extract_entities(text: &str, category: &ProofCategory) -> Vec<ExtractedEntity
 fn detect_comparison(text: &str) -> (&'static str, ComparisonOp) {
     let lower = text.to_lowercase();
 
-    if lower.contains("at least") || lower.contains("minimum") || lower.contains("no less than") || lower.contains("≥")
-        || lower.contains("على الاقل") || lower.contains("على الأقل") || lower.contains("الحد الادنى") || lower.contains("الحد الأدنى")
+    if lower.contains("at least")
+        || lower.contains("minimum")
+        || lower.contains("no less than")
+        || lower.contains("≥")
+        || lower.contains("على الاقل")
+        || lower.contains("على الأقل")
+        || lower.contains("الحد الادنى")
+        || lower.contains("الحد الأدنى")
         || lower.contains("لا يقل عن")
     {
         (">=", ComparisonOp::GtEq)
-    } else if lower.contains("more than") || lower.contains("greater than") || lower.contains("exceeds")
-        || lower.contains("above") || lower.contains("over") || lower.contains(">")
-        || lower.contains("اكثر من") || lower.contains("أكثر من") || lower.contains("يتجاوز") || lower.contains("فوق")
-        || lower.contains("اعلى من") || lower.contains("أعلى من") || lower.contains("يزيد عن")
+    } else if lower.contains("more than")
+        || lower.contains("greater than")
+        || lower.contains("exceeds")
+        || lower.contains("above")
+        || lower.contains("over")
+        || lower.contains(">")
+        || lower.contains("اكثر من")
+        || lower.contains("أكثر من")
+        || lower.contains("يتجاوز")
+        || lower.contains("فوق")
+        || lower.contains("اعلى من")
+        || lower.contains("أعلى من")
+        || lower.contains("يزيد عن")
     {
         (">", ComparisonOp::Gt)
-    } else if lower.contains("at most") || lower.contains("maximum") || lower.contains("no more than") || lower.contains("≤")
-        || lower.contains("على الاكثر") || lower.contains("على الأكثر") || lower.contains("الحد الاعلى") || lower.contains("الحد الأعلى")
+    } else if lower.contains("at most")
+        || lower.contains("maximum")
+        || lower.contains("no more than")
+        || lower.contains("≤")
+        || lower.contains("على الاكثر")
+        || lower.contains("على الأكثر")
+        || lower.contains("الحد الاعلى")
+        || lower.contains("الحد الأعلى")
         || lower.contains("لا يزيد عن")
     {
         ("<=", ComparisonOp::LtEq)
-    } else if lower.contains("less than") || lower.contains("below") || lower.contains("under") || lower.contains("<")
-        || lower.contains("اقل من") || lower.contains("أقل من") || lower.contains("تحت")
+    } else if lower.contains("less than")
+        || lower.contains("below")
+        || lower.contains("under")
+        || lower.contains("<")
+        || lower.contains("اقل من")
+        || lower.contains("أقل من")
+        || lower.contains("تحت")
     {
         ("<", ComparisonOp::Lt)
-    } else if lower.contains("not") || lower.contains("isn't") || lower.contains("≠") || lower.contains("!=")
-        || lower.contains("لا يساوي") || lower.contains("مختلف عن") || lower.contains("ليس")
+    } else if lower.contains("not")
+        || lower.contains("isn't")
+        || lower.contains("≠")
+        || lower.contains("!=")
+        || lower.contains("لا يساوي")
+        || lower.contains("مختلف عن")
+        || lower.contains("ليس")
     {
         ("!=", ComparisonOp::NotEq)
-    } else if lower.contains("equal") || lower.contains("exactly") || lower.contains("==") || lower.contains("matches")
-        || lower.contains("يساوي") || lower.contains("تماما") || lower.contains("تماماً") || lower.contains("مطابق")
+    } else if lower.contains("equal")
+        || lower.contains("exactly")
+        || lower.contains("==")
+        || lower.contains("matches")
+        || lower.contains("يساوي")
+        || lower.contains("تماما")
+        || lower.contains("تماماً")
+        || lower.contains("مطابق")
     {
         ("==", ComparisonOp::Eq)
     } else {
@@ -556,16 +771,13 @@ fn detect_privacy_requirements(text: &str) -> Vec<String> {
             let after = &lower[pos + pattern.len()..].trim();
             // Extract what to hide
             let hidden_part = after
-                .split(|c: char| c == '.' || c == ',' || c == ';' || c == '\n')
+                .split(['.', ',', ';', '\n'])
                 .next()
                 .unwrap_or(after)
                 .trim()
                 .to_string();
 
-            if !hidden_part.is_empty()
-                && hidden_part != "my"
-                && hidden_part != "the"
-            {
+            if !hidden_part.is_empty() && hidden_part != "my" && hidden_part != "the" {
                 hidden.push(hidden_part);
             }
         }
@@ -575,12 +787,14 @@ fn detect_privacy_requirements(text: &str) -> Vec<String> {
     if let Some(pos) = lower.find("my ") {
         let after = &lower[pos + 3..].trim();
         let words: Vec<&str> = after.split_whitespace().collect();
-        if words.len() >= 1 {
+        if !words.is_empty() {
             let what = words[0].to_lowercase();
-            if matches!(what.as_str(), "wallet" | "balance" | "age" | "score" | "identity" | "address" | "name") {
-                if !hidden.iter().any(|h| h.contains(&what)) {
-                    hidden.push(what);
-                }
+            if matches!(
+                what.as_str(),
+                "wallet" | "balance" | "age" | "score" | "identity" | "address" | "name"
+            ) && !hidden.iter().any(|h| h.contains(&what))
+            {
+                hidden.push(what);
             }
         }
     }
@@ -595,21 +809,49 @@ fn extract_threshold(text: &str) -> Option<String> {
     // Convert Arabic-Indic digits to Western
     let arabic_to_western = |ch: char| -> char {
         match ch {
-            '\u{0660}' => '0', '\u{0661}' => '1', '\u{0662}' => '2',
-            '\u{0663}' => '3', '\u{0664}' => '4', '\u{0665}' => '5',
-            '\u{0666}' => '6', '\u{0667}' => '7', '\u{0668}' => '8', '\u{0669}' => '9',
+            '\u{0660}' => '0',
+            '\u{0661}' => '1',
+            '\u{0662}' => '2',
+            '\u{0663}' => '3',
+            '\u{0664}' => '4',
+            '\u{0665}' => '5',
+            '\u{0666}' => '6',
+            '\u{0667}' => '7',
+            '\u{0668}' => '8',
+            '\u{0669}' => '9',
             _ => ch,
         }
     };
     let normalized_lower: String = lower.chars().map(arabic_to_western).collect();
 
     let prefixes = [
-        "at least", "more than", "over", "above", "minimum of",
-        "exceeds", "greater than", "at most", "less than", "below",
-        "under", "maximum of",
-        "على الاقل", "على الأقل", "اكثر من", "أكثر من", "يتجاوز", "فوق",
-        "اعلى من", "أعلى من", "يزيد عن", "على الاكثر", "على الأكثر",
-        "اقل من", "أقل من", "الحد الادنى", "الحد الأدنى",
+        "at least",
+        "more than",
+        "over",
+        "above",
+        "minimum of",
+        "exceeds",
+        "greater than",
+        "at most",
+        "less than",
+        "below",
+        "under",
+        "maximum of",
+        "على الاقل",
+        "على الأقل",
+        "اكثر من",
+        "أكثر من",
+        "يتجاوز",
+        "فوق",
+        "اعلى من",
+        "أعلى من",
+        "يزيد عن",
+        "على الاكثر",
+        "على الأكثر",
+        "اقل من",
+        "أقل من",
+        "الحد الادنى",
+        "الحد الأدنى",
     ];
 
     for prefix in &prefixes {
@@ -617,7 +859,8 @@ fn extract_threshold(text: &str) -> Option<String> {
             let after = &normalized_lower[pos + prefix.len()..].trim();
             if let Some(word) = after.split_whitespace().next() {
                 // Try to parse as number (after Arabic digit normalization)
-                let cleaned: String = word.chars()
+                let cleaned: String = word
+                    .chars()
                     .take_while(|c| c.is_ascii_digit() || *c == '.')
                     .collect();
                 if !cleaned.is_empty() && cleaned.parse::<f64>().is_ok() {
@@ -646,7 +889,7 @@ fn generate_zkf(entities: &[ExtractedEntity], category: &ProofCategory, text: &s
     // Comments with the original NL
     zkf.push_str(&format!("// Auto-generated from: \"{}\"\n", text));
     zkf.push_str(&format!("// Category: {:?}\n", category));
-    zkf.push_str("\n");
+    zkf.push('\n');
 
     // Prove block
     zkf.push_str(&format!("prove {} {{\n", circuit_name));
@@ -663,22 +906,35 @@ fn generate_zkf(entities: &[ExtractedEntity], category: &ProofCategory, text: &s
         ));
     }
 
-    zkf.push_str("\n");
+    zkf.push('\n');
 
     // Assertions
     match category {
         ProofCategory::AgeVerification => {
             let default_threshold = threshold.unwrap_or_else(|| "18".to_string());
-            zkf.push_str(&format!("    assert age {} {};\n", op_symbol, default_threshold));
+            zkf.push_str(&format!(
+                "    assert age {} {};\n",
+                op_symbol, default_threshold
+            ));
         }
         ProofCategory::BalanceThreshold => {
             let default_threshold = threshold.unwrap_or_else(|| "50".to_string());
-            let var = if entities.iter().any(|e| e.name == "eth_balance") { "eth_balance" } else { "token_balance" };
-            zkf.push_str(&format!("    assert {} {} {};\n", var, op_symbol, default_threshold));
+            let var = if entities.iter().any(|e| e.name == "eth_balance") {
+                "eth_balance"
+            } else {
+                "token_balance"
+            };
+            zkf.push_str(&format!(
+                "    assert {} {} {};\n",
+                var, op_symbol, default_threshold
+            ));
         }
         ProofCategory::ScoreThreshold => {
             let default_threshold = threshold.unwrap_or_else(|| "700".to_string());
-            zkf.push_str(&format!("    assert score {} {};\n", op_symbol, default_threshold));
+            zkf.push_str(&format!(
+                "    assert score {} {};\n",
+                op_symbol, default_threshold
+            ));
         }
         ProofCategory::OwnershipProof | ProofCategory::SetMembership => {
             zkf.push_str("    assert merkle_verify(merkle_root, merkle_path, leaf) == true;\n");
@@ -688,14 +944,20 @@ fn generate_zkf(entities: &[ExtractedEntity], category: &ProofCategory, text: &s
         }
         ProofCategory::AttributeProof => {
             let default_threshold = threshold.unwrap_or_else(|| "100".to_string());
-            zkf.push_str(&format!("    assert private_value {} {};\n", op_symbol, default_threshold));
+            zkf.push_str(&format!(
+                "    assert private_value {} {};\n",
+                op_symbol, default_threshold
+            ));
         }
         ProofCategory::PrivateComputation => {
             zkf.push_str("    assert input_a * input_b == expected_result;\n");
         }
         ProofCategory::CompoundProof => {
             let default_threshold = threshold.unwrap_or_else(|| "100".to_string());
-            zkf.push_str(&format!("    assert private_val {} {};\n", op_symbol, default_threshold));
+            zkf.push_str(&format!(
+                "    assert private_val {} {};\n",
+                op_symbol, default_threshold
+            ));
         }
         ProofCategory::Unknown => {
             zkf.push_str("    // TODO: customize the assertion below\n");
@@ -711,7 +973,11 @@ fn generate_zkf(entities: &[ExtractedEntity], category: &ProofCategory, text: &s
 }
 
 /// Generate test vectors for the circuit.
-fn generate_test_vectors(entities: &[ExtractedEntity], category: &ProofCategory, text: &str) -> Vec<TestVector> {
+fn generate_test_vectors(
+    entities: &[ExtractedEntity],
+    category: &ProofCategory,
+    text: &str,
+) -> Vec<TestVector> {
     let threshold = extract_threshold(text);
     let mut vectors = Vec::new();
 
@@ -725,29 +991,52 @@ fn generate_test_vectors(entities: &[ExtractedEntity], category: &ProofCategory,
             priv_pass.insert("age".to_string(), pass_age.to_string());
             let mut pub_pass = HashMap::new();
             pub_pass.insert("min_age".to_string(), min_age.clone());
-            vectors.push(TestVector { private_inputs: priv_pass, public_inputs: pub_pass, should_pass: true });
+            vectors.push(TestVector {
+                private_inputs: priv_pass,
+                public_inputs: pub_pass,
+                should_pass: true,
+            });
 
             let mut priv_fail = HashMap::new();
             priv_fail.insert("age".to_string(), fail_age.to_string());
             let mut pub_fail = HashMap::new();
             pub_fail.insert("min_age".to_string(), min_age);
-            vectors.push(TestVector { private_inputs: priv_fail, public_inputs: pub_fail, should_pass: false });
+            vectors.push(TestVector {
+                private_inputs: priv_fail,
+                public_inputs: pub_fail,
+                should_pass: false,
+            });
         }
         ProofCategory::BalanceThreshold => {
-            let t_val: u64 = threshold.unwrap_or_else(|| "50".to_string()).parse().unwrap_or(50);
-            let var_name = if entities.iter().any(|e| e.name == "eth_balance") { "eth_balance" } else { "token_balance" };
+            let t_val: u64 = threshold
+                .unwrap_or_else(|| "50".to_string())
+                .parse()
+                .unwrap_or(50);
+            let var_name = if entities.iter().any(|e| e.name == "eth_balance") {
+                "eth_balance"
+            } else {
+                "token_balance"
+            };
 
             let mut priv_pass = HashMap::new();
             priv_pass.insert(var_name.to_string(), (t_val + 10).to_string());
             let mut pub_pass = HashMap::new();
             pub_pass.insert("threshold".to_string(), t_val.to_string());
-            vectors.push(TestVector { private_inputs: priv_pass, public_inputs: pub_pass, should_pass: true });
+            vectors.push(TestVector {
+                private_inputs: priv_pass,
+                public_inputs: pub_pass,
+                should_pass: true,
+            });
 
             let mut priv_fail = HashMap::new();
             priv_fail.insert(var_name.to_string(), t_val.saturating_sub(1).to_string());
             let mut pub_fail = HashMap::new();
             pub_fail.insert("threshold".to_string(), t_val.to_string());
-            vectors.push(TestVector { private_inputs: priv_fail, public_inputs: pub_fail, should_pass: false });
+            vectors.push(TestVector {
+                private_inputs: priv_fail,
+                public_inputs: pub_fail,
+                should_pass: false,
+            });
         }
         ProofCategory::ScoreThreshold => {
             let min_score = threshold.unwrap_or_else(|| "700".to_string());
@@ -757,7 +1046,11 @@ fn generate_test_vectors(entities: &[ExtractedEntity], category: &ProofCategory,
             priv_pass.insert("score".to_string(), (s_val + 50).to_string());
             let mut pub_pass = HashMap::new();
             pub_pass.insert("min_score".to_string(), min_score.clone());
-            vectors.push(TestVector { private_inputs: priv_pass, public_inputs: pub_pass, should_pass: true });
+            vectors.push(TestVector {
+                private_inputs: priv_pass,
+                public_inputs: pub_pass,
+                should_pass: true,
+            });
         }
         ProofCategory::AttributeProof => {
             let t = threshold.unwrap_or_else(|| "100".to_string());
@@ -766,7 +1059,11 @@ fn generate_test_vectors(entities: &[ExtractedEntity], category: &ProofCategory,
             priv_pass.insert("private_value".to_string(), (t_val + 1).to_string());
             let mut pub_pass = HashMap::new();
             pub_pass.insert("public_threshold".to_string(), t);
-            vectors.push(TestVector { private_inputs: priv_pass, public_inputs: pub_pass, should_pass: true });
+            vectors.push(TestVector {
+                private_inputs: priv_pass,
+                public_inputs: pub_pass,
+                should_pass: true,
+            });
         }
         _ => {
             // Generic test vector
@@ -782,7 +1079,11 @@ fn generate_test_vectors(entities: &[ExtractedEntity], category: &ProofCategory,
                     pub_inputs.insert(e.name.clone(), "10".to_string());
                 }
             }
-            vectors.push(TestVector { private_inputs: r#priv, public_inputs: pub_inputs, should_pass: true });
+            vectors.push(TestVector {
+                private_inputs: r#priv,
+                public_inputs: pub_inputs,
+                should_pass: true,
+            });
         }
     }
 
@@ -838,8 +1139,14 @@ fn build_explanation(
         (confidence * 100.0 / 14.0).min(100.0) // normalize
     ));
 
-    let private_count = entities.iter().filter(|e| e.privacy == Privacy::Private).count();
-    let public_count = entities.iter().filter(|e| e.privacy == Privacy::Public).count();
+    let private_count = entities
+        .iter()
+        .filter(|e| e.privacy == Privacy::Private)
+        .count();
+    let public_count = entities
+        .iter()
+        .filter(|e| e.privacy == Privacy::Public)
+        .count();
 
     expl.push_str(&format!(
         "**Circuit structure:** {} private signal{}, {} public signal{}\n\n",
@@ -870,6 +1177,7 @@ fn build_explanation(
 }
 
 #[cfg(test)]
+#[allow(clippy::len_zero)]
 mod tests {
     use super::*;
 
@@ -907,16 +1215,25 @@ mod tests {
 
     #[test]
     fn test_extract_threshold() {
-        assert_eq!(extract_threshold("I have at least 50 ETH"), Some("50".to_string()));
-        assert_eq!(extract_threshold("more than 100 tokens"), Some("100".to_string()));
-        assert_eq!(extract_threshold("my score exceeds 750 points"), Some("750".to_string()));
+        assert_eq!(
+            extract_threshold("I have at least 50 ETH"),
+            Some("50".to_string())
+        );
+        assert_eq!(
+            extract_threshold("more than 100 tokens"),
+            Some("100".to_string())
+        );
+        assert_eq!(
+            extract_threshold("my score exceeds 750 points"),
+            Some("750".to_string())
+        );
         assert_eq!(extract_threshold("I am 25 years old"), None); // not a threshold phrase
     }
 
     #[test]
     fn test_detect_privacy() {
         let hidden = detect_privacy_requirements(
-            "Prove I have more than 50 ETH without revealing my wallet address or exact balance"
+            "Prove I have more than 50 ETH without revealing my wallet address or exact balance",
         );
         assert!(hidden.iter().any(|h| h.contains("wallet")));
     }
@@ -943,9 +1260,7 @@ mod tests {
 
     #[test]
     fn test_full_translation_compound() {
-        let result = translate(
-            "I want to prove I'm over 18 and have more than 50 ETH"
-        ).unwrap();
+        let result = translate("I want to prove I'm over 18 and have more than 50 ETH").unwrap();
         assert!(result.zkf_source.len() > 0);
     }
 
@@ -988,8 +1303,10 @@ mod tests {
         // "بدون كشف" + "محفظتي" may tip scoring toward AttributeProof over AgeVerification.
         // Both are valid interpretations — the test accepts either.
         assert!(
-            result.category == ProofCategory::AgeVerification || result.category == ProofCategory::AttributeProof,
-            "Expected AgeVerification or AttributeProof, got {:?}", result.category
+            result.category == ProofCategory::AgeVerification
+                || result.category == ProofCategory::AttributeProof,
+            "Expected AgeVerification or AttributeProof, got {:?}",
+            result.category
         );
         assert!(result.zkf_source.len() > 0);
     }
@@ -1004,7 +1321,13 @@ mod tests {
 
     #[test]
     fn test_arabic_extract_threshold() {
-        assert_eq!(extract_threshold("على الاقل ٥٠ ايثير"), Some("50".to_string()));
-        assert_eq!(extract_threshold("اكثر من ١٠٠ عملة"), Some("100".to_string()));
+        assert_eq!(
+            extract_threshold("على الاقل ٥٠ ايثير"),
+            Some("50".to_string())
+        );
+        assert_eq!(
+            extract_threshold("اكثر من ١٠٠ عملة"),
+            Some("100".to_string())
+        );
     }
 }

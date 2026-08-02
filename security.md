@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in ZKForge, please **do not** open a public issue. 
 
-Email: security@zkforge.dev (or open a private security advisory on GitHub)
+Open a private security advisory on GitHub: https://github.com/zkarchitect/zkforge/security/advisories/new
 
 We take ZK circuit correctness extremely seriously. Every report will be investigated promptly.
 
@@ -12,7 +12,7 @@ We take ZK circuit correctness extremely seriously. Every report will be investi
 
 | Date | Auditor | Findings | Status |
 |------|---------|----------|--------|
-| 2026-07-30 | Internal | 3 Critical, 4 Medium, 4 Low | All critical & medium fixed |
+| Q3 2026 | Internal | 3 Critical, 4 Medium, 4 Low | All critical & medium fixed |
 
 See [security_audit.md](security_audit.md) for the full audit report.
 

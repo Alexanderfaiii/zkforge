@@ -1,3 +1,8 @@
+#![allow(dead_code)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::obfuscated_if_else)]
+#![allow(clippy::type_complexity)]
+
 //! ZKForge Compiler — No-Code ZK Circuit Generator
 //!
 //! # Overview
@@ -25,23 +30,22 @@
 //! ```
 
 pub mod ast;
-pub mod parser;
-pub mod constraints;
-pub mod codegen;
-pub mod r1cs;
-pub mod prover;
-pub mod groth16_native;
-pub mod crypto_primitives;
-pub mod crypto;
-pub mod solidity_verifier;
-pub mod deployment;
-pub mod nl_translator;
-pub mod plonk_prover;
-pub mod recursive_prover;
-pub mod zkml;
 pub mod auto_shield;
+pub mod codegen;
+pub mod constraints;
+pub mod crypto;
+pub mod crypto_primitives;
+pub mod deployment;
+pub mod groth16_native;
+pub mod nl_translator;
+pub mod parser;
+pub mod plonk_prover;
+pub mod prover;
+pub mod r1cs;
+pub mod recursive_prover;
 pub mod signature;
-
+pub mod solidity_verifier;
+pub mod zkml;
 
 /// Compile a ZKF source file into all output artifacts.
 #[derive(Debug)]
@@ -64,12 +68,14 @@ pub fn compile(source: &str, filename: &str) -> Result<CompileOutput, parser::Pa
     let program = parser::parse(source, filename)?;
 
     // Extract the first ProveBlock (skip comments and imports)
-    let block = program.statements.iter().find_map(|s| match s {
-        ast::Statement::ProveBlock(b) => Some(b),
-        _ => None,
-    }).ok_or_else(|| parser::ParseError::TypeError(
-        "No prove block found in source".into()
-    ))?;
+    let block = program
+        .statements
+        .iter()
+        .find_map(|s| match s {
+            ast::Statement::ProveBlock(b) => Some(b),
+            _ => None,
+        })
+        .ok_or_else(|| parser::ParseError::TypeError("No prove block found in source".into()))?;
 
     // 2. Synthesize constraints
     let cs = constraints::ConstraintSystem::synthesize(block);
@@ -86,7 +92,11 @@ pub fn compile(source: &str, filename: &str) -> Result<CompileOutput, parser::Pa
     // 6. Build info
     let info = constraints::CircuitInfo {
         name: program.name.clone(),
-        num_inputs: cs.signals.iter().filter(|s| s.kind == constraints::SignalKind::Input).count(),
+        num_inputs: cs
+            .signals
+            .iter()
+            .filter(|s| s.kind == constraints::SignalKind::Input)
+            .count(),
         num_private: block.private_signals().len(),
         num_public: block.public_signals().len(),
         num_constraints: cs.constraints.len(),

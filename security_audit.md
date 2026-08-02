@@ -1,6 +1,6 @@
 # ZKForge Security Audit
 
-> Audit date: 2026-07-30. Category: CRYPTO. Severity: CRITICAL.
+> Audit date: Q3 2026. Category: CRYPTO. Severity: CRITICAL.
 
 ## Critical Findings
 

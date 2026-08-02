@@ -140,10 +140,7 @@ pub enum Expression {
         right: Box<Expression>,
     },
     /// Function call: `merkle_verify(root, path, leaf)`
-    FunctionCall {
-        name: String,
-        args: Vec<Expression>,
-    },
+    FunctionCall { name: String, args: Vec<Expression> },
     /// Parenthesized expression
     Paren(Box<Expression>),
 }
@@ -270,9 +267,7 @@ impl Expression {
     /// Try to resolve the type of this expression.
     pub fn resolve_type(&self, inputs: &[InputDecl]) -> Option<DataType> {
         match self {
-            Expression::Variable(name) => {
-                inputs.iter().find(|i| i.name == *name).map(|i| i.ty)
-            }
+            Expression::Variable(name) => inputs.iter().find(|i| i.name == *name).map(|i| i.ty),
             Expression::Comparison { left, right, .. } => {
                 left.resolve_type(inputs).or(right.resolve_type(inputs))
             }

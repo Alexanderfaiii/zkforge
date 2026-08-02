@@ -45,7 +45,17 @@ impl Term {
         match self {
             Term::Signal(name) => name.clone(),
             Term::Constant(val) => val.clone(),
-            Term::Linear(terms) => terms.iter().map(|(c, s)| if c == "1" { s.clone() } else { format!("{}*{}", c, s) }).collect::<Vec<_>>().join(" + "),
+            Term::Linear(terms) => terms
+                .iter()
+                .map(|(c, s)| {
+                    if c == "1" {
+                        s.clone()
+                    } else {
+                        format!("{}*{}", c, s)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(" + "),
             Term::Neg(inner) => format!("-({})", inner.to_circom()),
             Term::Add(l, r) => format!("({} + {})", l.to_circom(), r.to_circom()),
             Term::Sub(l, r) => format!("({} - {})", l.to_circom(), r.to_circom()),
@@ -70,19 +80,48 @@ pub struct ConstraintSystem {
     counter: usize,
 }
 
+impl Default for ConstraintSystem {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConstraintSystem {
     pub fn new() -> Self {
-        ConstraintSystem { signals: Vec::new(), constraints: Vec::new(), output_signals: Vec::new(), witness_seeds: Vec::new(), counter: 0 }
+        ConstraintSystem {
+            signals: Vec::new(),
+            constraints: Vec::new(),
+            output_signals: Vec::new(),
+            witness_seeds: Vec::new(),
+            counter: 0,
+        }
     }
 
-    fn fresh(&mut self, prefix: &str) -> String { self.counter += 1; format!("i{}_{}", prefix, self.counter) }
-    fn add_input(&mut self, decl: &InputDecl) { self.signals.push(Signal { name: decl.name.clone(), kind: SignalKind::Input, ty: decl.ty }); }
-    fn add_intermediate(&mut self, name: String, ty: DataType) { self.signals.push(Signal { name, kind: SignalKind::Intermediate, ty }); }
+    fn fresh(&mut self, prefix: &str) -> String {
+        self.counter += 1;
+        format!("i{}_{}", prefix, self.counter)
+    }
+    fn add_input(&mut self, decl: &InputDecl) {
+        self.signals.push(Signal {
+            name: decl.name.clone(),
+            kind: SignalKind::Input,
+            ty: decl.ty,
+        });
+    }
+    fn add_intermediate(&mut self, name: String, ty: DataType) {
+        self.signals.push(Signal {
+            name,
+            kind: SignalKind::Intermediate,
+            ty,
+        });
+    }
 
     /// Synthesize constraints from a ProveBlock.
     pub fn synthesize(block: &ProveBlock) -> Self {
         let mut cs = ConstraintSystem::new();
-        for input in &block.inputs { cs.add_input(input); }
+        for input in &block.inputs {
+            cs.add_input(input);
+        }
 
         let mut assert_results: Vec<String> = Vec::new();
         for assert in &block.assertions {
@@ -92,53 +131,139 @@ impl ConstraintSystem {
 
         if !block.outputs.is_empty() {
             cs.output_signals = block.outputs.clone();
-            for out in &cs.output_signals { cs.signals.push(Signal { name: out.name.clone(), kind: SignalKind::Output, ty: out.ty }); }
+            for out in &cs.output_signals {
+                cs.signals.push(Signal {
+                    name: out.name.clone(),
+                    kind: SignalKind::Output,
+                    ty: out.ty,
+                });
+            }
             if !assert_results.is_empty() {
                 for out in &cs.output_signals.clone() {
                     let mut combined = assert_results[0].clone();
                     for r in &assert_results[1..] {
                         let and_sig = cs.fresh("and");
-                        cs.signals.push(Signal { name: and_sig.clone(), kind: SignalKind::Intermediate, ty: DataType::Bool });
-                        cs.constraints.push(Constraint { a: Term::Signal(combined.clone()), b: Term::Signal(r.clone()), c: Term::Signal(and_sig.clone()), comment: format!("AND: {} * {} = {}", combined, r, and_sig) });
-                        cs.witness_seeds.push(WitnessSeed { signal: and_sig.clone(), expression: format!("{}*{}", combined, r) });
+                        cs.signals.push(Signal {
+                            name: and_sig.clone(),
+                            kind: SignalKind::Intermediate,
+                            ty: DataType::Bool,
+                        });
+                        cs.constraints.push(Constraint {
+                            a: Term::Signal(combined.clone()),
+                            b: Term::Signal(r.clone()),
+                            c: Term::Signal(and_sig.clone()),
+                            comment: format!("AND: {} * {} = {}", combined, r, and_sig),
+                        });
+                        cs.witness_seeds.push(WitnessSeed {
+                            signal: and_sig.clone(),
+                            expression: format!("{}*{}", combined, r),
+                        });
                         combined = and_sig;
                     }
-                    cs.constraints.push(Constraint { a: Term::Signal(out.name.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(combined.clone()), comment: format!("Output {} = assertions", out.name) });
+                    cs.constraints.push(Constraint {
+                        a: Term::Signal(out.name.clone()),
+                        b: Term::Constant("1".to_string()),
+                        c: Term::Signal(combined.clone()),
+                        comment: format!("Output {} = assertions", out.name),
+                    });
                 }
             }
         } else if !assert_results.is_empty() {
             let valid_name = cs.fresh("valid");
-            cs.signals.push(Signal { name: valid_name.clone(), kind: SignalKind::Output, ty: DataType::Bool });
+            cs.signals.push(Signal {
+                name: valid_name.clone(),
+                kind: SignalKind::Output,
+                ty: DataType::Bool,
+            });
             let mut combined = assert_results[0].clone();
             for r in &assert_results[1..] {
                 let and_sig = cs.fresh("and");
-                cs.signals.push(Signal { name: and_sig.clone(), kind: SignalKind::Intermediate, ty: DataType::Bool });
-                cs.constraints.push(Constraint { a: Term::Signal(combined.clone()), b: Term::Signal(r.clone()), c: Term::Signal(and_sig.clone()), comment: format!("AND: {} * {} = {}", combined, r, and_sig) });
-                cs.witness_seeds.push(WitnessSeed { signal: and_sig.clone(), expression: format!("{}*{}", combined, r) });
+                cs.signals.push(Signal {
+                    name: and_sig.clone(),
+                    kind: SignalKind::Intermediate,
+                    ty: DataType::Bool,
+                });
+                cs.constraints.push(Constraint {
+                    a: Term::Signal(combined.clone()),
+                    b: Term::Signal(r.clone()),
+                    c: Term::Signal(and_sig.clone()),
+                    comment: format!("AND: {} * {} = {}", combined, r, and_sig),
+                });
+                cs.witness_seeds.push(WitnessSeed {
+                    signal: and_sig.clone(),
+                    expression: format!("{}*{}", combined, r),
+                });
                 combined = and_sig;
             }
-            cs.constraints.push(Constraint { a: Term::Signal(valid_name.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(combined), comment: "Output valid = assertions passed".to_string() });
-            cs.output_signals.push(OutputDecl { name: valid_name, ty: DataType::Bool });
+            cs.constraints.push(Constraint {
+                a: Term::Signal(valid_name.clone()),
+                b: Term::Constant("1".to_string()),
+                c: Term::Signal(combined),
+                comment: "Output valid = assertions passed".to_string(),
+            });
+            cs.output_signals.push(OutputDecl {
+                name: valid_name,
+                ty: DataType::Bool,
+            });
         }
         cs
     }
 
     fn synthesize_expression(&mut self, expr: &Expression, inputs: &[InputDecl]) -> String {
         match expr {
-            Expression::Comparison { left, right, op } => self.synthesize_comparison(left, right, *op, inputs),
-            Expression::Arithmetic { left, op, right } => self.synthesize_arithmetic(left, *op, right, inputs),
+            Expression::Comparison { left, right, op } => {
+                self.synthesize_comparison(left, right, *op, inputs)
+            }
+            Expression::Arithmetic { left, op, right } => {
+                self.synthesize_arithmetic(left, *op, right, inputs)
+            }
             Expression::FunctionCall { name, args } => self.synthesize_function(name, args, inputs),
             Expression::Variable(name) => name.clone(),
-            Expression::Number(val) => { let s = self.fresh("const"); self.add_intermediate(s.clone(), DataType::U256); self.constraints.push(Constraint { a: Term::Signal(s.clone()), b: Term::Constant("1".to_string()), c: Term::Constant(val.clone()), comment: format!("Constant: {}", val) }); s }
-            Expression::Bool(_) => { let s = self.fresh("bool"); self.add_intermediate(s.clone(), DataType::Bool); self.constraints.push(Constraint { a: Term::Signal(s.clone()), b: Term::Constant("1".to_string()), c: Term::Constant(match expr { Expression::Bool(true) => "1", _ => "0" }.to_string()), comment: "Boolean literal".to_string() }); s }
+            Expression::Number(val) => {
+                let s = self.fresh("const");
+                self.add_intermediate(s.clone(), DataType::U256);
+                self.constraints.push(Constraint {
+                    a: Term::Signal(s.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant(val.clone()),
+                    comment: format!("Constant: {}", val),
+                });
+                s
+            }
+            Expression::Bool(_) => {
+                let s = self.fresh("bool");
+                self.add_intermediate(s.clone(), DataType::Bool);
+                self.constraints.push(Constraint {
+                    a: Term::Signal(s.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant(
+                        match expr {
+                            Expression::Bool(true) => "1",
+                            _ => "0",
+                        }
+                        .to_string(),
+                    ),
+                    comment: "Boolean literal".to_string(),
+                });
+                s
+            }
             Expression::Paren(inner) => self.synthesize_expression(inner, inputs),
         }
     }
 
-    fn synthesize_comparison(&mut self, left: &Expression, right: &Expression, op: ComparisonOp, inputs: &[InputDecl]) -> String {
+    fn synthesize_comparison(
+        &mut self,
+        left: &Expression,
+        right: &Expression,
+        op: ComparisonOp,
+        inputs: &[InputDecl],
+    ) -> String {
         let left_sig = self.synthesize_expression(left, inputs);
         let right_sig = self.synthesize_expression(right, inputs);
-        let ty = left.resolve_type(inputs).or(right.resolve_type(inputs)).unwrap_or(DataType::U256);
+        let ty = left
+            .resolve_type(inputs)
+            .or(right.resolve_type(inputs))
+            .unwrap_or(DataType::U256);
         let result = self.fresh("cmp");
         self.add_intermediate(result.clone(), DataType::Bool);
         let num_bits = ty.bits() as usize;
@@ -148,94 +273,149 @@ impl ConstraintSystem {
                 let diff = self.fresh("diff");
                 self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Signal(left_sig.clone())),
+                        Box::new(Term::Signal(right_sig.clone())),
+                    ),
                     comment: format!("diff = {} - {}", left_sig, right_sig),
                 });
                 let bits = self.decompose_to_bits_efficient(&diff, num_bits);
                 self.enforce_bit_reconstruction(&diff, &bits, num_bits);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} >= {}: result=1", left_sig, right_sig),
                 });
             }
             ComparisonOp::Gt => {
-                let diff = self.fresh("diff"); self.add_intermediate(diff.clone(), ty);
+                let diff = self.fresh("diff");
+                self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Sub(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone())))), Box::new(Term::Constant("1".to_string()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Sub(
+                            Box::new(Term::Signal(left_sig.clone())),
+                            Box::new(Term::Signal(right_sig.clone())),
+                        )),
+                        Box::new(Term::Constant("1".to_string())),
+                    ),
                     comment: format!("diff = {} - {} - 1", left_sig, right_sig),
                 });
                 let bits = self.decompose_to_bits_efficient(&diff, num_bits);
                 self.enforce_bit_reconstruction(&diff, &bits, num_bits);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} > {}: result=1", left_sig, right_sig),
                 });
             }
             ComparisonOp::LtEq => {
-                let diff = self.fresh("diff"); self.add_intermediate(diff.clone(), ty);
+                let diff = self.fresh("diff");
+                self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Signal(right_sig.clone())), Box::new(Term::Signal(left_sig.clone()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Signal(right_sig.clone())),
+                        Box::new(Term::Signal(left_sig.clone())),
+                    ),
                     comment: format!("diff = {} - {}", right_sig, left_sig),
                 });
                 let bits = self.decompose_to_bits_efficient(&diff, num_bits);
                 self.enforce_bit_reconstruction(&diff, &bits, num_bits);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} <= {}: result=1", left_sig, right_sig),
                 });
             }
             ComparisonOp::Lt => {
-                let diff = self.fresh("diff"); self.add_intermediate(diff.clone(), ty);
+                let diff = self.fresh("diff");
+                self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Sub(Box::new(Term::Signal(right_sig.clone())), Box::new(Term::Signal(left_sig.clone())))), Box::new(Term::Constant("1".to_string()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Sub(
+                            Box::new(Term::Signal(right_sig.clone())),
+                            Box::new(Term::Signal(left_sig.clone())),
+                        )),
+                        Box::new(Term::Constant("1".to_string())),
+                    ),
                     comment: format!("diff = {} - {} - 1", right_sig, left_sig),
                 });
                 let bits = self.decompose_to_bits_efficient(&diff, num_bits);
                 self.enforce_bit_reconstruction(&diff, &bits, num_bits);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} < {}: result=1", left_sig, right_sig),
                 });
             }
             ComparisonOp::Eq => {
-                let diff = self.fresh("eq_diff"); self.add_intermediate(diff.clone(), ty);
+                let diff = self.fresh("eq_diff");
+                self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Signal(left_sig.clone())),
+                        Box::new(Term::Signal(right_sig.clone())),
+                    ),
                     comment: format!("eq diff = {} - {}", left_sig, right_sig),
                 });
-                let eq_inv = self.fresh("eq_inv"); self.add_intermediate(eq_inv.clone(), ty);
+                let eq_inv = self.fresh("eq_inv");
+                self.add_intermediate(eq_inv.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Signal(eq_inv.clone()), c: Term::Constant("0".to_string()),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Signal(eq_inv.clone()),
+                    c: Term::Constant("0".to_string()),
                     comment: "diff * eq_inv = 0".to_string(),
                 });
                 self.constraints.push(Constraint {
-                    a: Term::Signal(eq_inv.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(eq_inv.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: "eq_inv = 1 forces diff = 0".to_string(),
                 });
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} == {}: result=1", left_sig, right_sig),
                 });
             }
             ComparisonOp::NotEq => {
-                let diff = self.fresh("neq_diff"); self.add_intermediate(diff.clone(), ty);
+                let diff = self.fresh("neq_diff");
+                self.add_intermediate(diff.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Constant("1".to_string()),
-                    c: Term::Sub(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone()))),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Signal(left_sig.clone())),
+                        Box::new(Term::Signal(right_sig.clone())),
+                    ),
                     comment: format!("neq diff = {} - {}", left_sig, right_sig),
                 });
-                let inv = self.fresh("inv"); self.add_intermediate(inv.clone(), ty);
+                let inv = self.fresh("inv");
+                self.add_intermediate(inv.clone(), ty);
                 self.constraints.push(Constraint {
-                    a: Term::Signal(diff.clone()), b: Term::Signal(inv), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(diff.clone()),
+                    b: Term::Signal(inv),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} != {}: diff * inv = 1", left_sig, right_sig),
                 });
                 self.constraints.push(Constraint {
-                    a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("1".to_string()),
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("1".to_string()),
                     comment: format!("{} != {}: result=1", left_sig, right_sig),
                 });
             }
@@ -249,7 +429,9 @@ impl ConstraintSystem {
             let bit = self.fresh(&format!("{}_b{}", signal, i));
             self.add_intermediate(bit.clone(), DataType::Bool);
             self.constraints.push(Constraint {
-                a: Term::Signal(bit.clone()), b: Term::Signal(bit.clone()), c: Term::Signal(bit.clone()),
+                a: Term::Signal(bit.clone()),
+                b: Term::Signal(bit.clone()),
+                c: Term::Signal(bit.clone()),
                 comment: format!("bit {} of {} is binary", i, signal),
             });
             self.witness_seeds.push(WitnessSeed {
@@ -269,57 +451,148 @@ impl ConstraintSystem {
             linear_terms.push((weight, bit.clone()));
         }
         self.constraints.push(Constraint {
-            a: Term::Signal(signal.to_string()), b: Term::Constant("1".to_string()),
+            a: Term::Signal(signal.to_string()),
+            b: Term::Constant("1".to_string()),
             c: Term::Linear(linear_terms),
             comment: format!("{} = sum of bits * 2^i", signal),
         });
     }
 
-
-    fn synthesize_arithmetic(&mut self, left: &Expression, op: ArithmeticOp, right: &Expression, inputs: &[InputDecl]) -> String {
+    fn synthesize_arithmetic(
+        &mut self,
+        left: &Expression,
+        op: ArithmeticOp,
+        right: &Expression,
+        inputs: &[InputDecl],
+    ) -> String {
         let left_sig = self.synthesize_expression(left, inputs);
         let right_sig = self.synthesize_expression(right, inputs);
-        let result = self.fresh(match op { ArithmeticOp::Add=>"sum", ArithmeticOp::Sub=>"sub", ArithmeticOp::Mul=>"prod", ArithmeticOp::Div=>"div", ArithmeticOp::Mod=>"mod", ArithmeticOp::Pow=>"pow" });
+        let result = self.fresh(match op {
+            ArithmeticOp::Add => "sum",
+            ArithmeticOp::Sub => "sub",
+            ArithmeticOp::Mul => "prod",
+            ArithmeticOp::Div => "div",
+            ArithmeticOp::Mod => "mod",
+            ArithmeticOp::Pow => "pow",
+        });
         let ty = left.resolve_type(inputs).unwrap_or(DataType::U256);
         self.add_intermediate(result.clone(), ty);
 
         match op {
-            ArithmeticOp::Add => { self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Add(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone()))), comment: format!("{} = {} + {}", result, left_sig, right_sig) }); }
-            ArithmeticOp::Sub => { self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Sub(Box::new(Term::Signal(left_sig.clone())), Box::new(Term::Signal(right_sig.clone()))), comment: format!("{} = {} - {}", result, left_sig, right_sig) }); }
+            ArithmeticOp::Add => {
+                self.constraints.push(Constraint {
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Add(
+                        Box::new(Term::Signal(left_sig.clone())),
+                        Box::new(Term::Signal(right_sig.clone())),
+                    ),
+                    comment: format!("{} = {} + {}", result, left_sig, right_sig),
+                });
+            }
+            ArithmeticOp::Sub => {
+                self.constraints.push(Constraint {
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Sub(
+                        Box::new(Term::Signal(left_sig.clone())),
+                        Box::new(Term::Signal(right_sig.clone())),
+                    ),
+                    comment: format!("{} = {} - {}", result, left_sig, right_sig),
+                });
+            }
             ArithmeticOp::Mul => {
-                self.constraints.push(Constraint { a: Term::Signal(left_sig.clone()), b: Term::Signal(right_sig.clone()), c: Term::Signal(result.clone()), comment: format!("{} = {} * {}", result, left_sig, right_sig) });
-                self.witness_seeds.push(WitnessSeed { signal: result.clone(), expression: format!("{}*{}", left_sig, right_sig) });
+                self.constraints.push(Constraint {
+                    a: Term::Signal(left_sig.clone()),
+                    b: Term::Signal(right_sig.clone()),
+                    c: Term::Signal(result.clone()),
+                    comment: format!("{} = {} * {}", result, left_sig, right_sig),
+                });
+                self.witness_seeds.push(WitnessSeed {
+                    signal: result.clone(),
+                    expression: format!("{}*{}", left_sig, right_sig),
+                });
             }
             ArithmeticOp::Div => {
-                self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Signal(right_sig.clone()), c: Term::Signal(left_sig.clone()), comment: format!("{} = {} / {}", result, left_sig, right_sig) });
-                let inv = self.fresh("div_inv"); self.add_intermediate(inv.clone(), ty);
-                self.constraints.push(Constraint { a: Term::Signal(right_sig.clone()), b: Term::Signal(inv), c: Term::Constant("1".to_string()), comment: "Division: denominator non-zero check".to_string() });
+                self.constraints.push(Constraint {
+                    a: Term::Signal(result.clone()),
+                    b: Term::Signal(right_sig.clone()),
+                    c: Term::Signal(left_sig.clone()),
+                    comment: format!("{} = {} / {}", result, left_sig, right_sig),
+                });
+                let inv = self.fresh("div_inv");
+                self.add_intermediate(inv.clone(), ty);
+                self.constraints.push(Constraint {
+                    a: Term::Signal(right_sig.clone()),
+                    b: Term::Signal(inv),
+                    c: Term::Constant("1".to_string()),
+                    comment: "Division: denominator non-zero check".to_string(),
+                });
             }
             ArithmeticOp::Mod => {
-                let q = self.fresh("quotient"); self.add_intermediate(q.clone(), ty);
-                self.constraints.push(Constraint { a: Term::Signal(left_sig.clone()), b: Term::Constant("1".to_string()), c: Term::Add(Box::new(Term::Linear(vec![("1".to_string(), q.clone()), ("1".to_string(), result.clone())])), Box::new(Term::Constant("0".to_string()))), comment: format!("{} mod {}", left_sig, right_sig) });
+                let q = self.fresh("quotient");
+                self.add_intermediate(q.clone(), ty);
+                self.constraints.push(Constraint {
+                    a: Term::Signal(left_sig.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Add(
+                        Box::new(Term::Linear(vec![
+                            ("1".to_string(), q.clone()),
+                            ("1".to_string(), result.clone()),
+                        ])),
+                        Box::new(Term::Constant("0".to_string())),
+                    ),
+                    comment: format!("{} mod {}", left_sig, right_sig),
+                });
             }
             ArithmeticOp::Pow => {
                 if let Expression::Number(exp) = right {
                     let exp_val: u32 = exp.parse().unwrap_or(2);
                     let mut cur = left_sig.clone();
                     for i in 1..exp_val {
-                        let next = self.fresh(&format!("pow_{}", i)); self.add_intermediate(next.clone(), ty);
-                        self.constraints.push(Constraint { a: Term::Signal(cur.clone()), b: Term::Signal(left_sig.clone()), c: Term::Signal(next.clone()), comment: format!("{}^{}: step {}", left_sig, exp_val, i) });
-                        self.witness_seeds.push(WitnessSeed { signal: next.clone(), expression: format!("{}*{}", cur, left_sig) });
+                        let next = self.fresh(&format!("pow_{}", i));
+                        self.add_intermediate(next.clone(), ty);
+                        self.constraints.push(Constraint {
+                            a: Term::Signal(cur.clone()),
+                            b: Term::Signal(left_sig.clone()),
+                            c: Term::Signal(next.clone()),
+                            comment: format!("{}^{}: step {}", left_sig, exp_val, i),
+                        });
+                        self.witness_seeds.push(WitnessSeed {
+                            signal: next.clone(),
+                            expression: format!("{}*{}", cur, left_sig),
+                        });
                         cur = next;
                     }
-                    self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(cur), comment: format!("Power result: {}", left_sig) });
+                    self.constraints.push(Constraint {
+                        a: Term::Signal(result.clone()),
+                        b: Term::Constant("1".to_string()),
+                        c: Term::Signal(cur),
+                        comment: format!("Power result: {}", left_sig),
+                    });
                 } else {
-                    self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("0".to_string()), comment: "Power: variable exponent not yet supported".to_string() });
+                    self.constraints.push(Constraint {
+                        a: Term::Signal(result.clone()),
+                        b: Term::Constant("1".to_string()),
+                        c: Term::Constant("0".to_string()),
+                        comment: "Power: variable exponent not yet supported".to_string(),
+                    });
                 }
             }
         }
         result
     }
 
-    fn synthesize_function(&mut self, name: &str, args: &[Expression], inputs: &[InputDecl]) -> String {
-        let arg_sigs: Vec<String> = args.iter().map(|a| self.synthesize_expression(a, inputs)).collect();
+    fn synthesize_function(
+        &mut self,
+        name: &str,
+        args: &[Expression],
+        inputs: &[InputDecl],
+    ) -> String {
+        let arg_sigs: Vec<String> = args
+            .iter()
+            .map(|a| self.synthesize_expression(a, inputs))
+            .collect();
         match name {
             "merkle_verify" => self.synthesize_merkle_verify(&arg_sigs),
             "hash" | "poseidon" => self.synthesize_hash(&arg_sigs, name),
@@ -327,8 +600,14 @@ impl ConstraintSystem {
             "signature_verify" => self.synthesize_signature_verify(&arg_sigs),
             "range_check" => self.synthesize_range_check(&arg_sigs),
             _ => {
-                let result = self.fresh(&format!("{}.result", name)); self.add_intermediate(result.clone(), DataType::Bool);
-                self.constraints.push(Constraint { a: Term::Signal(result.clone()), b: Term::Constant("1".to_string()), c: Term::Constant("-1".to_string()), comment: format!("Stub: {}({:?})", name, arg_sigs) });
+                let result = self.fresh(&format!("{}.result", name));
+                self.add_intermediate(result.clone(), DataType::Bool);
+                self.constraints.push(Constraint {
+                    a: Term::Signal(result.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Constant("-1".to_string()),
+                    comment: format!("Stub: {}({:?})", name, arg_sigs),
+                });
                 result
             }
         }
@@ -340,7 +619,7 @@ impl ConstraintSystem {
     /// For each level i:
     ///   - if path_index[i] == 0: hash(current, path_element[i])   (current is left)
     ///   - if path_index[i] == 1: hash(path_element[i], current)   (current is right)
-    /// Result signal = 1 when the computed root matches the claimed root.
+    ///     Result signal = 1 when the computed root matches the claimed root.
     fn synthesize_merkle_verify(&mut self, args: &[String]) -> String {
         let result = self.fresh("merkle_result");
         self.add_intermediate(result.clone(), DataType::Bool);
@@ -362,13 +641,14 @@ impl ConstraintSystem {
 
         // Remaining args are [path_elements..., path_indices...]
         let remaining = args.len() - 2;
-        if remaining % 2 != 0 {
+        if !remaining.is_multiple_of(2) {
             // Unequal numbers of elements and indices
             self.constraints.push(Constraint {
                 a: Term::Signal(result.clone()),
                 b: Term::Constant("1".to_string()),
                 c: Term::Constant("0".to_string()),
-                comment: "Merkle verify: path_elements and path_indices counts must match".to_string(),
+                comment: "Merkle verify: path_elements and path_indices counts must match"
+                    .to_string(),
             });
             return result;
         }
@@ -417,7 +697,10 @@ impl ConstraintSystem {
                 a: Term::Signal(index_sig.clone()),
                 b: Term::Signal(diff_hash),
                 c: Term::Signal(idx_diff.clone()),
-                comment: format!("Merkle level {}: idx_diff = index * (right_hash - left_hash)", i),
+                comment: format!(
+                    "Merkle level {}: idx_diff = index * (right_hash - left_hash)",
+                    i
+                ),
             });
 
             // next = left_hash + idx_diff
@@ -483,7 +766,11 @@ impl ConstraintSystem {
                 a: Term::Signal(r.clone()),
                 b: Term::Constant("1".to_string()),
                 c: Term::Constant("0".to_string()),
-                comment: format!("{}({}) — only 2-arg Poseidon supported; returning 0", hash_name, args.join(",")),
+                comment: format!(
+                    "{}({}) — only 2-arg Poseidon supported; returning 0",
+                    hash_name,
+                    args.join(",")
+                ),
             });
             r
         }
@@ -510,29 +797,18 @@ impl ConstraintSystem {
                 a: Term::Signal(r.clone()),
                 b: Term::Constant("1".to_string()),
                 c: Term::Constant("0".to_string()),
-                comment: "ECDSA verify: needs 5 args (msg_hash, pk_x, pk_y, sig_r, sig_s)".to_string(),
+                comment: "ECDSA verify: needs 5 args (msg_hash, pk_x, pk_y, sig_r, sig_s)"
+                    .to_string(),
             });
             return r;
         }
 
         // 1. Compute Poseidon commitment over the 5 inputs (this is the ZK constraint)
         // commitment = Poseidon(args[0], args[1], args[2], args[3], args[4])
-        let commitment_sig = self.synthesize_poseidon(
-            &args[0], &args[1],
-            "ecdsa_commit_01"
-        );
-        let commitment_sig = self.synthesize_poseidon(
-            &commitment_sig, &args[2],
-            "ecdsa_commit_02"
-        );
-        let commitment_sig = self.synthesize_poseidon(
-            &commitment_sig, &args[3],
-            "ecdsa_commit_03"
-        );
-        let commitment_sig = self.synthesize_poseidon(
-            &commitment_sig, &args[4],
-            "ecdsa_commit_04"
-        );
+        let commitment_sig = self.synthesize_poseidon(&args[0], &args[1], "ecdsa_commit_01");
+        let commitment_sig = self.synthesize_poseidon(&commitment_sig, &args[2], "ecdsa_commit_02");
+        let commitment_sig = self.synthesize_poseidon(&commitment_sig, &args[3], "ecdsa_commit_03");
+        let commitment_sig = self.synthesize_poseidon(&commitment_sig, &args[4], "ecdsa_commit_04");
 
         // 2. Store commitment as an intermediate signal for the native verifier
         let stored_commitment = self.fresh("ecdsa_commitment");
@@ -679,17 +955,40 @@ impl ConstraintSystem {
         self.add_intermediate(s1.clone(), DataType::U256);
         self.add_intermediate(s2.clone(), DataType::U256);
         // Initialize: s0 = left, s1 = right, s2 = 0
-        self.constraints.push(Constraint { a: Term::Signal(s0.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(state0), comment: "Poseidon init: s0 = left".to_string() });
-        self.constraints.push(Constraint { a: Term::Signal(s1.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(state1), comment: "Poseidon init: s1 = right".to_string() });
-        self.constraints.push(Constraint { a: Term::Signal(s2.clone()), b: Term::Constant("1".to_string()), c: Term::Signal(state2), comment: "Poseidon init: s2 = 0".to_string() });
+        self.constraints.push(Constraint {
+            a: Term::Signal(s0.clone()),
+            b: Term::Constant("1".to_string()),
+            c: Term::Signal(state0),
+            comment: "Poseidon init: s0 = left".to_string(),
+        });
+        self.constraints.push(Constraint {
+            a: Term::Signal(s1.clone()),
+            b: Term::Constant("1".to_string()),
+            c: Term::Signal(state1),
+            comment: "Poseidon init: s1 = right".to_string(),
+        });
+        self.constraints.push(Constraint {
+            a: Term::Signal(s2.clone()),
+            b: Term::Constant("1".to_string()),
+            c: Term::Signal(state2),
+            comment: "Poseidon init: s2 = 0".to_string(),
+        });
 
         for round in 0..TOTAL {
-            let is_full = round < FULL || round >= (FULL + PARTIAL);
+            let is_full = !(FULL..(FULL + PARTIAL)).contains(&round);
 
             // S-box: x^5 on state elements
             let s0_x5 = self.add_pow5_cs(&format!("{}_r{}_s0", label, round), &s0);
-            let s1_x5 = if is_full { self.add_pow5_cs(&format!("{}_r{}_s1", label, round), &s1) } else { s1.clone() };
-            let s2_x5 = if is_full { self.add_pow5_cs(&format!("{}_r{}_s2", label, round), &s2) } else { s2.clone() };
+            let s1_x5 = if is_full {
+                self.add_pow5_cs(&format!("{}_r{}_s1", label, round), &s1)
+            } else {
+                s1.clone()
+            };
+            let s2_x5 = if is_full {
+                self.add_pow5_cs(&format!("{}_r{}_s2", label, round), &s2)
+            } else {
+                s2.clone()
+            };
 
             // MDS matrix constants (from crypto.rs SHAKE256)
             // These are embedded as BigUint string constants for the constraint system.
@@ -711,17 +1010,20 @@ impl ConstraintSystem {
             let s0_move = s0_x5.clone();
             let s1_move = s1_x5.clone();
             self.constraints.push(Constraint {
-                a: Term::Signal(ns0.clone()), b: Term::Constant("1".to_string()),
+                a: Term::Signal(ns0.clone()),
+                b: Term::Constant("1".to_string()),
                 c: Term::Linear(vec![("1".to_string(), s0_move), ("1".to_string(), s1_move)]),
                 comment: format!("Poseidon r{}: ns0 = s0^5 + s1^5", round),
             });
             self.constraints.push(Constraint {
-                a: Term::Signal(ns1.clone()), b: Term::Constant("1".to_string()),
+                a: Term::Signal(ns1.clone()),
+                b: Term::Constant("1".to_string()),
                 c: Term::Linear(vec![("1".to_string(), s0_x5), ("2".to_string(), s1_x5)]),
                 comment: format!("Poseidon r{}: ns1 = s0^5 + 2*s1^5", round),
             });
             self.constraints.push(Constraint {
-                a: Term::Signal(ns2.clone()), b: Term::Constant("1".to_string()),
+                a: Term::Signal(ns2.clone()),
+                b: Term::Constant("1".to_string()),
                 c: Term::Signal(s2_x5),
                 comment: format!("Poseidon r{}: ns2 = s2^5 (identity for width-2)", round),
             });
@@ -784,29 +1086,60 @@ pub struct CircuitInfo {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ProofSystem { Groth16, Plonk, Halo2 }
+pub enum ProofSystem {
+    Groth16,
+    Plonk,
+    Halo2,
+}
 
 impl ProofSystem {
-    pub fn select(_num_constraints: usize, _num_public: usize) -> Self { ProofSystem::Groth16 }
-    pub fn name(&self) -> &'static str { match self { ProofSystem::Groth16 => "Groth16", ProofSystem::Plonk => "Plonk", ProofSystem::Halo2 => "Halo2" } }
+    pub fn select(_num_constraints: usize, _num_public: usize) -> Self {
+        ProofSystem::Groth16
+    }
+    pub fn name(&self) -> &'static str {
+        match self {
+            ProofSystem::Groth16 => "Groth16",
+            ProofSystem::Plonk => "Plonk",
+            ProofSystem::Halo2 => "Halo2",
+        }
+    }
 }
 
 #[cfg(test)]
+#[allow(clippy::len_zero)]
 mod tests {
     use super::*;
     use crate::parser::parse;
 
     fn compile(source: &str) -> ConstraintSystem {
         let program = parse(source, "test.zkf").unwrap();
-        let block = match &program.statements[0] { Statement::ProveBlock(b) => b, _ => panic!("Expected ProveBlock") };
+        let block = match &program.statements[0] {
+            Statement::ProveBlock(b) => b,
+            _ => panic!("Expected ProveBlock"),
+        };
         ConstraintSystem::synthesize(block)
     }
 
-    #[test] fn test_simple_age_check() { let cs = compile(r#"prove { input age: Private<u8>; input min_age: Public<u8>; assert age >= 18; }"#); assert!(cs.signals.len() > 2); assert!(cs.constraints.len() > 1); }
-    #[test] fn test_arithmetic() { let cs = compile(r#"prove { input x: Private<u8>; input y: Private<u8>; assert x + y > 100; }"#); assert!(cs.constraints.len() > 0); }
-    #[test] fn test_proof_system_selection() { assert_eq!(ProofSystem::select(100, 1).name(), "Groth16"); }
+    #[test]
+    fn test_simple_age_check() {
+        let cs = compile(
+            r#"prove { input age: Private<u8>; input min_age: Public<u8>; assert age >= 18; }"#,
+        );
+        assert!(cs.signals.len() > 2);
+        assert!(cs.constraints.len() > 1);
+    }
+    #[test]
+    fn test_arithmetic() {
+        let cs =
+            compile(r#"prove { input x: Private<u8>; input y: Private<u8>; assert x + y > 100; }"#);
+        assert!(cs.constraints.len() > 0);
+    }
+    #[test]
+    fn test_proof_system_selection() {
+        assert_eq!(ProofSystem::select(100, 1).name(), "Groth16");
+    }
 
-// === ADVERSARIAL TESTS (added post-audit 2026-07-30) ===
+    // === ADVERSARIAL TESTS (added post-audit Q3 2026) ===
 
     #[test]
     fn test_comparison_lt_rejects_equal() {
@@ -822,7 +1155,10 @@ mod tests {
     fn test_comparison_gt_rejects_smaller() {
         // C1 FIX: assert x > 10 with x=5 must FAIL at witness solving
         let cs = compile(r#"prove { input x: Private<u8>; assert x > 10; }"#);
-        assert!(cs.constraints.len() > 1, "Should produce diff + bit decomposition");
+        assert!(
+            cs.constraints.len() > 1,
+            "Should produce diff + bit decomposition"
+        );
     }
 
     #[test]
@@ -840,7 +1176,10 @@ mod tests {
         let cs = compile(r#"prove { input x: Private<u8>; input y: Public<u8>; assert x == y; }"#);
         // The circuit should have an inv signal constrained to 1
         let has_inv = cs.signals.iter().any(|s| s.name.contains("eq_inv"));
-        assert!(has_inv, "eq_inv signal must exist: diff*eq_inv=0 AND eq_inv=1 forces diff=0");
+        assert!(
+            has_inv,
+            "eq_inv signal must exist: diff*eq_inv=0 AND eq_inv=1 forces diff=0"
+        );
     }
 
     #[test]
@@ -852,8 +1191,7 @@ mod tests {
         assert!(has_inv, "inv signal must exist for != comparison");
         // Check the constraint is = 1, not = -1
         let const_one = cs.constraints.iter().any(|c| {
-            matches!(&c.c, Term::Constant(s) if s == "1") && 
-            !c.comment.contains("result=1")
+            matches!(&c.c, Term::Constant(s) if s == "1") && !c.comment.contains("result=1")
         });
         assert!(const_one, "diff*inv=1 constraint must exist (not -1)");
     }

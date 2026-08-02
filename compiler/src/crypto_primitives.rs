@@ -28,8 +28,10 @@ use crate::r1cs::R1CSSystem;
 fn poseidon_round_constant(round: usize, col: usize) -> u64 {
     let base: u64 = 0x19A7B3C5D8E2F164u64;
     let mult: u64 = 0x9E3779B97F4A7C15u64; // golden ratio
-    let add:  u64 = 0x517CC1B727220A95u64;
-    let seed = (round as u64).wrapping_mul(mult).wrapping_add((col as u64) * 0x6A09E667F3BCC908u64);
+    let add: u64 = 0x517CC1B727220A95u64;
+    let seed = (round as u64)
+        .wrapping_mul(mult)
+        .wrapping_add((col as u64) * 0x6A09E667F3BCC908u64);
     seed.wrapping_mul(mult).wrapping_add(add).wrapping_add(base)
 }
 
@@ -37,7 +39,7 @@ fn poseidon_round_constant(round: usize, col: usize) -> u64 {
 /// **Production:** replace with Keccak-256 of "MiMC7-const-BN254-{round}".
 fn mimc_round_constant(round: usize) -> u64 {
     let mult: u64 = 0x9E3779B97F4A7C15u64;
-    let add:  u64 = 0xBB67AE8584CAA73Bu64;
+    let add: u64 = 0xBB67AE8584CAA73Bu64;
     let seed = (round as u64).wrapping_mul(mult);
     seed.wrapping_mul(mult).wrapping_add(add)
 }
@@ -73,7 +75,7 @@ fn add_poseidon_full_round(
     // Linear mixing (simplified 2×2 MDS-like matrix [1 1; 1 2]):
     //   new_left  = l^5 + r^5    + rc_0
     //   new_right = l^5 + 2·r^5  + rc_1
-    let new_left  = format!("{}_r{}_nl", label, round);
+    let new_left = format!("{}_r{}_nl", label, round);
     let new_right = format!("{}_r{}_nr", label, round);
 
     let rc0 = poseidon_round_constant(round, 0);
@@ -111,7 +113,7 @@ fn add_poseidon_partial_round(
     // Linear mixing with same matrix, right passes through without s-box:
     //   new_left  = l^5 + right     + rc_0
     //   new_right = l^5 + 2·right   + rc_1
-    let new_left  = format!("{}_pr{}_nl", label, round);
+    let new_left = format!("{}_pr{}_nl", label, round);
     let new_right = format!("{}_pr{}_nr", label, round);
 
     let rc0 = poseidon_round_constant(round + 1000, 0); // offset to avoid collision with full round constants
@@ -120,7 +122,11 @@ fn add_poseidon_partial_round(
     r1cs.add_constraint_u64(
         &[(new_left.clone(), 1)],
         &[("ONE".to_string(), 1)],
-        &[(l5.clone(), 1), (right.to_string(), 1), ("ONE".to_string(), rc0)],
+        &[
+            (l5.clone(), 1),
+            (right.to_string(), 1),
+            ("ONE".to_string(), rc0),
+        ],
     );
 
     r1cs.add_constraint_u64(
@@ -304,11 +310,16 @@ pub fn add_mimc_constraint(
     r1cs.add_constraint_u64(
         &[(result_name.to_string(), 1)],
         &[("ONE".to_string(), 1)],
-        &[(x.clone(), 1), (right_name.to_string(), 1), (k_name.to_string(), 1)],
+        &[
+            (x.clone(), 1),
+            (right_name.to_string(), 1),
+            (k_name.to_string(), 1),
+        ],
     );
 }
 
 #[cfg(test)]
+#[allow(clippy::len_zero)]
 mod tests {
     use super::*;
 

@@ -19,9 +19,11 @@ Thumbs.db
 **/*.rs.bk
 
 # zkforge specific
-proofs/**/pk.bin
-proofs/**/vk.bin
-proofs/**/proof.bin
+proofs/
 
 # Dependencies
 node_modules/
+
+# Local credentials (never commit)
+.git-credentials
+pw/

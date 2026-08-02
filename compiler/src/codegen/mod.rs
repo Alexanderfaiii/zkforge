@@ -3,5 +3,5 @@
 //! Takes the ConstraintSystem IR and generates production-ready code.
 
 pub mod circom;
-pub mod verifier;
 pub mod deployment;
+pub mod verifier;

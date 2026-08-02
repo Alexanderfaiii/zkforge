@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Alexanderfaiii/zkforge/main/assets/logo.svg" alt="ZKForge" width="320" />
+  <img src="https://raw.githubusercontent.com/zkarchitect/zkforge/main/assets/logo.svg" alt="ZKForge" width="320" />
   <p><strong>Pure Rust ZK Compiler — No circom. No snarkjs. No Node.js.</strong></p>
   
   <p>
-    <a href="https://github.com/Alexanderfaiii/zkforge/actions"><img src="https://img.shields.io/github/actions/workflow/status/Alexanderfaiii/zkforge/ci.yml?branch=main&style=flat-square" alt="CI" /></a>
+    <a href="https://github.com/zkarchitect/zkforge/actions"><img src="https://img.shields.io/github/actions/workflow/status/zkarchitect/zkforge/ci.yml?branch=main&style=flat-square" alt="CI" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" alt="License" /></a>
     <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square" alt="Rust" /></a>
     <img src="https://img.shields.io/badge/tests-128%2F128-brightgreen?style=flat-square" alt="Tests" />
@@ -106,7 +106,7 @@ zkforge/
 
 ## 🔐 Security
 
-Full security audit completed (2026-07-30). 3 critical bugs found and fixed:
+Full security audit completed (Q3 2026). 3 critical bugs found and fixed:
 
 1. **Comparison constraints** — `assert age >= 18` was silently passing for `age = 3`
 2. **Plonk witness bypass** — prover used domain elements instead of real witness values  
@@ -122,6 +122,10 @@ PLONK, crypto primitives, recursive prover, auto-shield, zkML, deployment.
 ```
 
 Every test includes adversarial counterexamples: wrong inputs produce rejected proofs.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zkarchitect/zkforge&type=Date)](https://star-history.com/#zkarchitect/zkforge&Date)
 
 ## 📄 License
 

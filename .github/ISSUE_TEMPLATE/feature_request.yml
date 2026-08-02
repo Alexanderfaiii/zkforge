@@ -1,0 +1,28 @@
+name: Feature Request
+description: Suggest a new feature for ZKForge
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Tell us what you'd like ZKForge to do.
+  - type: textarea
+    id: description
+    attributes:
+      label: What feature would you like?
+      description: Describe the feature and why it's useful
+    validations:
+      required: true
+  - type: textarea
+    id: usecase
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that ZKForge can't do today?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you've tried?

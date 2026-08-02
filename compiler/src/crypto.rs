@@ -5,17 +5,18 @@
 //! This is the SINGLE source of truth for all Poseidon constants.
 
 use ark_bn254::Fr;
-use ark_ff::{PrimeField, Zero, BigInteger};
+use ark_ff::{BigInteger, PrimeField, Zero};
 use ark_serialize::CanonicalSerialize;
 use sha3::{
+    digest::{ExtendableOutput, Update, XofReader},
     Shake256,
-    digest::{Update, ExtendableOutput, XofReader},
 };
 
 // ─── Poseidon Permutation (BN254, t=3, 8 full + 57 partial rounds) ───
 
 /// BN254 base field modulus (the scalar field of BN254, aka Fr)
-pub const BN254_PRIME: &str = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
+pub const BN254_PRIME: &str =
+    "21888242871839275222246405745257275088696311157297823662689037894645226208583";
 
 /// SHAKE256 domain separator for constant generation.
 /// Must match exactly between Rust and Solidity.
@@ -238,14 +239,20 @@ pub fn generate_poseidon_solidity() -> String {
     // ─── Header ───
     out.push_str("/// @title PoseidonT3 — Poseidon hash over BN254 scalar field, width t=3\n");
     out.push_str("/// @notice Matches ZKForge Rust `poseidon_hash` in crypto.rs byte-for-byte.\n");
-    out.push_str("/// @dev SHAKE256-derived constants from domain \"zkforge-poseidon-bn254-t3-v1\".\n");
-    out.push_str("///      Structure: 8 full + 57 partial + 8 full rounds = 73 total, x^5 S-box.\n");
+    out.push_str(
+        "/// @dev SHAKE256-derived constants from domain \"zkforge-poseidon-bn254-t3-v1\".\n",
+    );
+    out.push_str(
+        "///      Structure: 8 full + 57 partial + 8 full rounds = 73 total, x^5 S-box.\n",
+    );
     out.push_str("library PoseidonT3 {\n");
     out.push_str(&format!("    uint256 constant Q = {};\n\n", BN254_PRIME));
 
     // ─── Field arithmetic ───
     out.push_str("    /// @dev Modular addition (unchecked block saves gas).\n");
-    out.push_str("    function add(uint256 a, uint256 b) internal pure returns (uint256) { unchecked {\n");
+    out.push_str(
+        "    function add(uint256 a, uint256 b) internal pure returns (uint256) { unchecked {\n",
+    );
     out.push_str("        uint256 c = a + b; if (c >= Q) c -= Q; return c;\n");
     out.push_str("    }}\n\n");
 
@@ -265,7 +272,9 @@ pub fn generate_poseidon_solidity() -> String {
 
     // ─── MDS matrix multiply ───
     out.push_str("    /// @dev Multiply state vector by the MDS matrix.\n");
-    out.push_str("    function mdsMul(uint256[3] memory s) internal pure returns (uint256[3] memory r) {\n");
+    out.push_str(
+        "    function mdsMul(uint256[3] memory s) internal pure returns (uint256[3] memory r) {\n",
+    );
     out.push_str(&format!(
         "        r[0] = add(add(mul({}, s[0]), mul({}, s[1])), mul({}, s[2]));\n",
         mds[0][0], mds[0][1], mds[0][2]
@@ -329,7 +338,9 @@ pub fn generate_poseidon_solidity() -> String {
     out.push_str("    }\n\n");
 
     // ─── Hash function ───
-    out.push_str("    /// @notice Hash two field elements. Returns state[0] after full permutation.\n");
+    out.push_str(
+        "    /// @notice Hash two field elements. Returns state[0] after full permutation.\n",
+    );
     out.push_str("    /// @dev Matches Rust `poseidon_hash(&left, &right)`.\n");
     out.push_str("    function hash(uint256[2] memory inputs) internal pure returns (uint256) {\n");
     out.push_str("        uint256[3] memory state;\n");
@@ -467,12 +478,16 @@ impl MerkleTree {
         let mut layer = padded;
 
         for _ in 0..self.depth {
-            let sibling_idx = if idx % 2 == 0 { idx + 1 } else { idx - 1 };
-            path.push(
-                (sibling_idx < layer.len())
-                    .then(|| layer[sibling_idx])
-                    .unwrap_or(Fr::zero()),
-            );
+            let sibling_idx = if idx.is_multiple_of(2) {
+                idx + 1
+            } else {
+                idx - 1
+            };
+            path.push(if sibling_idx < layer.len() {
+                layer[sibling_idx]
+            } else {
+                Fr::zero()
+            });
             idx /= 2;
 
             let mut next = Vec::with_capacity(layer.len() / 2);
@@ -496,7 +511,7 @@ impl MerkleTree {
         let mut current = proof.leaf;
         let mut idx = proof.leaf_index as usize;
         for sibling in &proof.path {
-            let (left, right) = if idx % 2 == 0 {
+            let (left, right) = if idx.is_multiple_of(2) {
                 (current, *sibling)
             } else {
                 (*sibling, current)
@@ -658,21 +673,39 @@ mod tests {
         let sol = generate_poseidon_solidity();
 
         // Basic structure checks
-        assert!(sol.contains("library PoseidonT3"), "Must contain library declaration");
+        assert!(
+            sol.contains("library PoseidonT3"),
+            "Must contain library declaration"
+        );
         assert!(sol.contains("function hash"), "Must contain hash function");
-        assert!(sol.contains("function permutation"), "Must contain permutation function");
+        assert!(
+            sol.contains("function permutation"),
+            "Must contain permutation function"
+        );
         assert!(sol.contains("function pow5"), "Must contain pow5 function");
-        assert!(sol.contains("function mdsMul"), "Must contain MDS multiplication");
+        assert!(
+            sol.contains("function mdsMul"),
+            "Must contain MDS multiplication"
+        );
         assert!(sol.contains("function add"), "Must contain add function");
         assert!(sol.contains("function mul"), "Must contain mul function");
-        assert!(sol.contains("uint256 constant Q"), "Must contain field modulus");
-        assert!(sol.contains("zkforge-poseidon-bn254-t3-v1"), "Must document domain");
+        assert!(
+            sol.contains("uint256 constant Q"),
+            "Must contain field modulus"
+        );
+        assert!(
+            sol.contains("zkforge-poseidon-bn254-t3-v1"),
+            "Must document domain"
+        );
         assert!(sol.contains("mulmod"), "Must use mulmod assembly");
         assert!(sol.contains("pow5(state[0])"), "Must reference x^5 S-box");
 
         // Should be reasonably sized
         assert!(sol.len() > 5000, "Solidity library should be substantial");
-        assert!(sol.len() < 200000, "Solidity library should not be unreasonably large");
+        assert!(
+            sol.len() < 200000,
+            "Solidity library should not be unreasonably large"
+        );
 
         // Round count: 73 rounds × (1 RC line per element × 3 + 1 sbox + 1 mdsMul) lines
         // 8 full → 8×(4+1+1) = 48 lines
@@ -680,8 +713,15 @@ mod tests {
         // 8 full → 48 lines
         // Total ≈ 438+ lines — just check it's substantial
         let line_count = sol.lines().count();
-        assert!(line_count > 400, "Should have hundreds of lines for 73 rounds");
+        assert!(
+            line_count > 400,
+            "Should have hundreds of lines for 73 rounds"
+        );
 
-        println!("Generated Solidity library: {} lines, {} bytes", line_count, sol.len());
+        println!(
+            "Generated Solidity library: {} lines, {} bytes",
+            line_count,
+            sol.len()
+        );
     }
 }

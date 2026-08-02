@@ -39,7 +39,10 @@ pub fn parse(source: &str, filename: &str) -> Result<Program, ParseError> {
         } else {
             return Err(ParseError::Parse {
                 line: parser.line,
-                msg: format!("Unexpected token: '{}'", parser.rest().chars().take(20).collect::<String>()),
+                msg: format!(
+                    "Unexpected token: '{}'",
+                    parser.rest().chars().take(20).collect::<String>()
+                ),
             });
         }
     }
@@ -67,7 +70,11 @@ struct ParserState<'a> {
 
 impl<'a> ParserState<'a> {
     fn new(source: &'a str) -> Self {
-        ParserState { source, pos: 0, line: 1 }
+        ParserState {
+            source,
+            pos: 0,
+            line: 1,
+        }
     }
 
     fn is_eof(&self) -> bool {
@@ -88,7 +95,7 @@ impl<'a> ParserState<'a> {
             && rest[word.len()..]
                 .chars()
                 .next()
-                .map_or(true, |c| !c.is_alphanumeric() && c != '_')
+                .is_none_or(|c| !c.is_alphanumeric() && c != '_')
     }
 
     fn peek_str(&self, s: &str) -> bool {
@@ -233,7 +240,7 @@ fn parse_prove_block(parser: &mut ParserState) -> Result<ProveBlock, ParseError>
     parser.skip_whitespace();
 
     // Optional name
-    let name = if parser.peek_char().map_or(false, |c| c.is_alphabetic()) {
+    let name = if parser.peek_char().is_some_and(|c| c.is_alphabetic()) {
         Some(parser.read_identifier()?)
     } else {
         None
