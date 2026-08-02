@@ -1,0 +1,22 @@
+// Auto-generated shielded circuit for Simple.set()
+// Original function: set nonpayable (1 params)
+
+prove shield_simple_set {
+    input param_p0: Private<u256>;
+    input secret: Private<u256>; // blinding secret for nullifier derivation
+    input nonce: Private<u256>; // per-call nonce
+    input nullifier: Public<u256>;
+
+    // Derive nullifier from secret: nullifier = poseidon(poseidon(secret, selector), nonce)
+    input selector: Public<u256>; // function selector (0x1abb9c3bf7badb89)
+    // Inner hash: h1 = poseidon(secret, selector)
+    // Final nullifier check: assert poseidon(h1, nonce) == nullifier;
+    assert hash(hash(secret, selector), nonce) == nullifier;
+
+    // Verify pre-state commitments (prover knows preimage)
+
+    // State transition logic
+
+    assert nullifier > 0;
+    output valid<bool>;
+}

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0c040"/>
+      <stop offset="100%" style="stop-color:#00d4aa"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shield/Hammer icon -->
+  <g transform="translate(60, 30)">
+    <!-- Shield shape -->
+    <path d="M 50 0 L 95 20 L 95 70 C 95 110 50 140 50 140 C 50 140 5 110 5 70 L 5 20 Z" 
+          fill="none" stroke="url(#g1)" stroke-width="3"/>
+    <!-- Anvil/Hammer inside -->
+    <g transform="translate(50, 70)" stroke="url(#g2)" stroke-width="2.5" fill="none" stroke-linecap="round">
+      <line x1="-12" y1="0" x2="12" y2="0"/>
+      <line x1="-12" y1="-6" x2="-12" y2="6"/>
+      <line x1="12" y1="-6" x2="12" y2="6"/>
+      <line x1="0" y1="-15" x2="0" y2="0" stroke-width="3"/>
+      <!-- Circuit lines -->
+      <line x1="-20" y1="-10" x2="-14" y2="-10"/>
+      <line x1="14" y1="-10" x2="20" y2="-10"/>
+      <line x1="-14" y1="-10" x2="-14" y2="-6"/>
+      <line x1="14" y1="-10" x2="14" y2="-6"/>
+      <!-- Dots -->
+      <circle cx="-20" cy="-10" r="2" fill="#00d4aa" stroke="none"/>
+      <circle cx="20" cy="-10" r="2" fill="#a78bfa" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- Text -->
+  <text x="180" y="80" font-family="'Segoe UI', sans-serif" font-size="52" font-weight="800" 
+        fill="url(#g1)" letter-spacing="2">ZKForge</text>
+  <text x="185" y="115" font-family="'Segoe UI', sans-serif" font-size="16" 
+        fill="#8888a0" letter-spacing="1">PURE RUST ZK COMPILER</text>
+  
+  <!-- Subtitle tags -->
+  <g transform="translate(185, 140)" font-family="monospace" font-size="10" fill="#666">
+    <rect x="0" y="-2" width="90" height="16" rx="3" fill="#1a2a1a" stroke="#2a4a2a"/>
+    <text x="8" y="9" fill="#22c55e">Groth16</text>
+    
+    <rect x="98" y="-2" width="75" height="16" rx="3" fill="#1a2010" stroke="#2a3010"/>
+    <text x="106" y="9" fill="#f0c040">PLONK</text>
+
+    <rect x="181" y="-2" width="65" height="16" rx="3" fill="#1a1a2a" stroke="#2a2a4a"/>
+    <text x="189" y="9" fill="#a78bfa">zkML</text>
+
+    <rect x="254" y="-2" width="115" height="16" rx="3" fill="#102030" stroke="#203050"/>
+    <text x="262" y="9" fill="#3b82f6">EIP-197</text>
+  </g>
+
+  <!-- Bottom line -->
+  <line x1="60" y1="170" x2="740" y2="170" stroke="url(#g1)" stroke-width="1" opacity="0.3"/>
+</svg>

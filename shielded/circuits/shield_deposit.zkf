@@ -1,0 +1,21 @@
+// Auto-generated shielded circuit for Vault.deposit()
+// Original function: deposit payable (0 params)
+
+prove shield_vault_deposit {
+    input secret: Private<u256>; // blinding secret for nullifier derivation
+    input nonce: Private<u256>; // per-call nonce
+    input nullifier: Public<u256>;
+
+    // Derive nullifier from secret: nullifier = poseidon(poseidon(secret, selector), nonce)
+    input selector: Public<u256>; // function selector (0x618fc5907fa72cfd)
+    // Inner hash: h1 = poseidon(secret, selector)
+    // Final nullifier check: assert poseidon(h1, nonce) == nullifier;
+    assert hash(hash(secret, selector), nonce) == nullifier;
+
+    // Verify pre-state commitments (prover knows preimage)
+
+    // State transition logic
+
+    assert nullifier > 0;
+    output valid<bool>;
+}

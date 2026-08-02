@@ -1,0 +1,5 @@
+{
+    "merkle_root": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "merkle_proof": "0xabc",
+    "leaf": "42"
+}

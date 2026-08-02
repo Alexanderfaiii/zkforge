@@ -1,0 +1,9 @@
+// ZKForge Example: Age Verification
+// Prove you are over 18 without revealing your exact age.
+
+prove age_verification {
+    input age: Private<u8>;
+    input min_age: Public<u8>;
+    assert age >= 18;
+    output valid<bool>;
+}

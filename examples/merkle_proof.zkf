@@ -1,0 +1,21 @@
+// ZKForge Example — Merkle Proof of Inclusion with Poseidon
+// Proves knowledge of a leaf that exists in a Merkle tree
+// WITHOUT revealing the leaf or the preimage.
+
+prove {
+    input leaf: Private<u256>;
+    input root: Public<u256>;
+    input sibling_0: Private<u256>;
+    input sibling_1: Private<u256>;
+    input sibling_2: Private<u256>;
+
+    // Poseidon hash at each level: h(left, right) = left^5 + right
+    // Level 0: hash(leaf, sibling_0)
+    assert poseidon_hash(leaf, sibling_0) = i0;
+    // Level 1: hash(i0, sibling_1)
+    assert poseidon_hash(i0, sibling_1) = i1;
+    // Level 2: hash(i1, sibling_2)
+    assert poseidon_hash(i1, sibling_2) = root;
+
+    output valid<bool>;
+}
