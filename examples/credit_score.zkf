@@ -1,0 +1,9 @@
+// ZKForge Example: Credit Score Threshold
+// Prove your credit score is above a threshold without revealing it.
+
+prove credit_check {
+    input credit_score: Private<u32>;
+    input min_score: Public<u32>;
+    assert credit_score >= 700;
+    output approved<bool>;
+}

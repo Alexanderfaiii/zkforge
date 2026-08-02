@@ -1,0 +1,9 @@
+{
+  "name": "age_verify",
+  "num_constraints": 27,
+  "num_inputs": 2,
+  "num_private": 1,
+  "num_public": 1,
+  "num_signals": 27,
+  "proof_system": "Groth16"
+}

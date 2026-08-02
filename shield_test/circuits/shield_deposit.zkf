@@ -1,0 +1,18 @@
+// Auto-generated shielded circuit for Token.deposit()
+// Original function: deposit payable (0 params)
+
+prove shield_token_deposit {
+    input pre_totalSupply: Private<uint256>; // pre-state
+    input pre_salt_totalSupply: Private<u256>; // salt for commitment
+    input post_commitment_totalSupply: Public<u256>; // new commitment
+    input nullifier: Public<u256>;
+
+    // Verify pre-state commitments (prover knows preimage)
+
+    // State transition logic
+    // (simplified: prove inputs match expected constraints)
+    // post_totalSupply >= pre_totalSupply (deposit increases balance)
+
+    assert nullifier > 0;
+    output valid<bool>;
+}

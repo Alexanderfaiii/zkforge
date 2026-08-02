@@ -1,0 +1,9 @@
+{
+  "name": "nft_ownership",
+  "num_constraints": 25,
+  "num_inputs": 3,
+  "num_private": 2,
+  "num_public": 1,
+  "num_signals": 27,
+  "proof_system": "Groth16"
+}

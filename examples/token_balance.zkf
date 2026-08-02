@@ -1,0 +1,11 @@
+// ZKForge Example: Token Balance Proof
+// Prove you have enough tokens without revealing your exact balance.
+
+prove token_balance {
+    input balance: Private<u32>;
+    input required_amount: Public<u32>;
+    input total_supply: Public<u32>;
+    assert balance >= required_amount * 2;
+    assert balance < total_supply;
+    output eligible<bool>;
+}

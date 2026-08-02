@@ -1,0 +1,10 @@
+// ZKForge Example: NFT Ownership Proof
+// Prove you own an NFT in a merkle tree without revealing which one.
+
+prove nft_ownership {
+    input merkle_root: Public<u256>;
+    input merkle_proof: Private<u256>;
+    input leaf: Private<u256>;
+    assert merkle_verify(merkle_root, merkle_proof, leaf) == true;
+    output is_owner<bool>;
+}

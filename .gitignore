@@ -1,0 +1,27 @@
+# Build artifacts
+/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated large files
+*.pdb
+*.bin
+
+# Rust
+**/*.rs.bk
+
+# zkforge specific
+proofs/**/pk.bin
+proofs/**/vk.bin
+proofs/**/proof.bin
+
+# Dependencies
+node_modules/

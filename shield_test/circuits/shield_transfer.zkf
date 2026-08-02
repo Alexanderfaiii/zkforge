@@ -1,0 +1,16 @@
+// Auto-generated shielded circuit for Token.transfer()
+// Original function: transfer nonpayable (2 params)
+
+prove shield_token_transfer {
+    input param_p0: Private<address>;
+    input param_p1: Private<uint256>;
+    input nullifier: Public<u256>;
+
+    // Verify pre-state commitments (prover knows preimage)
+
+    // State transition logic
+    // (simplified: prove inputs match expected constraints)
+
+    assert nullifier > 0;
+    output valid<bool>;
+}
