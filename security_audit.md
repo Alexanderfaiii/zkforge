@@ -1,8 +1,31 @@
 # ZKForge Security Audit
 
 > Audit date: Q3 2026. Category: CRYPTO. Severity: CRITICAL. Type: **Internal review**.
+> **v1.1.0 update:** C4 (witness-solver bit-decomposition direction) found and fixed during Q3 2026 self-audit.
 
 ## Critical Findings
+
+### C4: Witness Solver Bit-Decomposition Direction (FIXED — v1.1.0)
+
+**File:** `compiler/src/r1cs.rs` — Phase 3 bit-decomposition
+
+**Description:** The witness solver's bit-decomposition phase sorted bit weights
+in ascending order (1, 2, 4, 8, 16, 32...), then greedily subtracted them.
+This produced incorrect values: e.g. `50 = 1+2+4+8+16 = 31` instead of
+`50 = 32+16+2 = 50`. Any circuit comparing variable against a literal value
+(e.g. `credit_score >= 700`) failed end-to-end proving.
+
+**Impact:** 3 of 4 example circuits (credit_score, token_balance, nft_ownership)
+produced invalid constraint violations at prove time, even though the constraint
+synthesis itself was correct.
+
+**Fix:** Added `sorted_c.reverse()` after sorting — ensures greedy subtraction
+starts from the largest weight (descending order).
+
+**Verification:** credit_score and token_balance now pass end-to-end. nft_ownership
+requires separate merkle circuit redesign (tracked in v1.2).
+
+---
 
 ### C1: Comparison Constraints Silent Pass (FIXED)
 
@@ -305,7 +328,7 @@ correctness for arbitrary natural language input.
 
 | Severity | Count | Status |
 |----------|-------|--------|
-| Critical | 3 | All FIXED and verified |
+| Critical | 4 | All FIXED and verified |
 | Medium | 4 | All FIXED (M4 partial, noted) |
 | Low | 4 | Noted, not blocking |
 
@@ -322,7 +345,8 @@ All fixes were verified using independent adversarial tests following the
    feeding boundary values (equal, just-below, just-above).
 4. **Stubs:** All remaining stubs are documented with clear warnings.
 5. **Test suite audit:** 128/128 tests pass after fixes. Test suite was expanded
-   from 82 to 128 tests during this audit cycle.
+   from 82 to 128 tests. An additional self-audit in v1.1.0 discovered C4
+   and 11 documentation/honesty issues — all resolved.
 
 ## Auditor's Note
 
