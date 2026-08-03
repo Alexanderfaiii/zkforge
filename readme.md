@@ -58,9 +58,9 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 | Circuit | Constraints | R1CS Vars | Prove Time | Proof Size | Gas (verify) |
 |---------|------------|-----------|------------|------------|--------------|
 | Age Verify | 13 | 15 | <0.1s | 128 B | ~170K |
-| Credit Score | 37 | 39 | <0.2s | 128 B | ~170K |
-| Token Balance | 74 | 75 | <0.3s | 128 B | ~170K |
-| NFT Ownership | 7 | 9 | <0.1s | 128 B | ~170K |
+| Credit Score | 36 | 38 | <0.1s | 128 B | ~170K |
+| Token Balance | 74 | 76 | <0.1s | 128 B | ~170K |
+| NFT Ownership | — | — | — | — | — |
 
 ## 🏗 Architecture
 

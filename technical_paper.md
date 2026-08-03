@@ -267,8 +267,8 @@ Measured on Windows 11, Rust 1.x release mode, BN254 curve, via `cargo run --rel
 | Circuit | Setup | Prove | Proof Size |
 |---------|-------|-------|-------------|
 | age_verify (13) | 0.01s | 0.02s | 128 B |
-| credit_score (37) | ~0.05s | ~0.10s | 128 B |
-| token_balance (74) | ~0.10s | ~0.20s | 128 B |
+| credit_score (36) | ~0.01s | ~0.03s | 128 B |
+| token_balance (74) | ~0.01s | ~0.04s | 128 B |
 
 ### 5.3 Gas Cost (Ethereum)
 

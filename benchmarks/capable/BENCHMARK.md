@@ -6,63 +6,43 @@
 
 ## Groth16 Pipeline (BN254, EIP-197)
 
-> ⚠️ **v1.1.0 note:** Only age_verify passes end-to-end proving currently.
-> credit_score, token_balance, and nft_ownership fail due to a comparison-with-literal
-> constraint synthesis bug. Tracked for v1.2. The constraint counts below are correct;
-> the issue is in witness solving for circuits comparing variables against literal values.
+| Circuit | Constraints | R1CS Vars | Total Time | Proof Size | Verifier Size | Status |
+|---------|------------|-----------|------------|------------|---------------|--------|
+| age_verify | 13 | 15 | 0.04s | 128 B | 5,209 B | ✅ |
+| credit_score | 36 | 38 | 0.05s | 128 B | 5,215 B | ✅ |
+| token_balance | 74 | 76 | 0.08s | 128 B | 5,213 B | ✅ |
+| nft_ownership | — | — | — | — | — | ⚠️ Circuit redesign needed |
 
-| Circuit | Constraints | Setup | Prove | Proof Size | PK Size | Status |
-|---------|------------|-------|-------|------------|---------|--------|
-| age_verify | 13 | 0.09s | 0.31s | 128 B | 3,376 B | ✅ Passing |
-| credit_score | 37 | ~0.15s | ~0.5s | 128 B | ~9,000 B | ⚠️ Failing (v1.2) |
-| token_balance | 74 | ~0.25s | ~0.8s | 128 B | ~18,000 B | ⚠️ Failing (v1.2) |
-| nft_ownership | 7 | ~0.05s | ~0.15s | 128 B | ~1,800 B | ⚠️ Failing (v1.2) |
-
-> Setup = Groth16 trusted setup (SRS generation + key derivation). One-time cost per circuit.  
-> Prove = Witness computation + Groth16 proof generation. Recurring cost per proof.  
-> Verify = < 2ms (EIP-197 pairing check, constant time).  
-> Proof size is constant (128 B) regardless of circuit size — property of Groth16.
+> **Total time** = setup + witness solving + Groth16 proving + verification.  
+> **Proof size** is constant (128 B) regardless of circuit size — property of Groth16.  
+> **Verifier size** includes boilerplate; actual verification logic is EIP-197 constant gas (~170K).
 
 ## Constraint Throughput
 
 | Circuit | Constraints | Prove Time | Constraints/sec |
 |---------|------------|------------|-----------------|
-| age_verify | 13 | 0.22s | ~59 |
-| credit_score | 37 | ~0.35s | ~106 |
-| token_balance | 74 | ~0.55s | ~135 |
-| nft_ownership | 7 | 0.10s | ~70 |
+| age_verify | 13 | 0.02s | ~650 |
+| credit_score | 36 | 0.03s | ~1,200 |
+| token_balance | 74 | 0.04s | ~1,850 |
 
-> Prove time above = witness computation excluded (constraint evaluation only).  
-> Throughput varies with constraint type: mul constraints (x^5 S-box) are slower than add/sub.
-
-## Memory Usage (peak)
-
-| Circuit | Setup RAM | Prove RAM | Verify RAM |
-|---------|-----------|-----------|------------|
-| age_verify | ~15 MB | ~8 MB | ~2 MB |
-| credit_score | ~25 MB | ~12 MB | ~2 MB |
-| token_balance | ~40 MB | ~18 MB | ~2 MB |
-| nft_ownership | ~8 MB | ~5 MB | ~2 MB |
-
-> Verify memory is constant (< 2 MB) — independent of circuit size.  
-> Setup RAM scales with SRS size (grows with constraint count).  
-> All measurements include arkworks library overhead.
+> Prove time = Groth16 proof generation only (excludes setup and verification).  
+> Throughput increases with constraint count due to amortized FFT/SRS overhead.
 
 ## Gas Cost (Ethereum EIP-197)
 
 | Metric | Value | Constant? |
 |--------|-------|-----------|
-| Verifier bytecode | 6,986 B | Per circuit |
+| Verifier bytecode | ~5,200 B | Per circuit |
 | Deploy gas | ~296K | Per circuit |
 | Verify gas | ~170K | ✅ Constant |
-| **Total** | **~466K** | Per proof |
+| **Total per proof** | **~466K** | Per proof |
 
 ## Comparison Context
 
 These numbers represent **self-benchmarks** — they are NOT compared against circom, Noir, or Halo2. Why:
 
 1. Fair cross-tool comparison requires: same curve, same circuit semantics, same hardware, same measurement methodology
-2. circom 2.x (current) requires Rust→WASM compilation — not yet installed
+2. circom 2.x requires Rust→WASM compilation — not yet installed in our build environment
 3. ZKForge is a new project. Claiming superiority without rigorous third-party verification would be dishonest
 
 When circom 2.x comparison data is available, it will be added here with full methodology documentation.
@@ -72,5 +52,5 @@ When circom 2.x comparison data is available, it will be added here with full me
 - ✅ ZKForge produces valid Groth16 proofs (verified by CI on every push)
 - ✅ Proofs are EIP-197 compatible (verifiable on Ethereum)
 - ✅ Proof size is optimal (128 B = 2 G1 + 1 G1 elements)
-- ✅ Memory usage is practical for consumer hardware
+- ✅ Total pipeline time < 0.1s for circuits up to 74 constraints
 - ✅ Verify cost is constant (~170K gas regardless of circuit size)
