@@ -2,16 +2,16 @@
 
 ## Benchmark Summary
 
-Measured on Windows 11, Rust 1.x release mode, BN254 curve.
+Measured via `cargo run --release -- bench examples/`. Results vary by hardware.
 
 ### Native Groth16 Proving
 
 | Circuit | DSL Constraints | R1CS Vars | Prove Time | Proof Size | Status |
 |---------|----------------|-----------|------------|------------|--------|
-| Age Verification | 12 | 64 | 0.03s | 128 B | PASS |
-| Credit Score | 36 | 232 | 0.06s | 128 B | PASS |
-| Token Balance | 72 | 428 | 0.08s | 128 B | PASS |
-| NFT Ownership | 4 | 15 | 0.03s | 128 B | PASS |
+| Age Verification | 12 | 64 | <0.1s | 128 B | PASS |
+| Credit Score | 36 | 232 | <0.2s | 128 B | PASS |
+| Token Balance | 72 | 428 | <0.3s | 128 B | PASS |
+| NFT Ownership | 4 | 15 | <0.1s | 128 B | PASS |
 
 ### Gas Cost (Ethereum EIP-197)
 
