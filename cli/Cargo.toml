@@ -2,8 +2,12 @@
 name = "zkforge"
 version = "1.1.0"
 edition = "2021"
-description = "No-Code ZK Circuit Generator"
+description = "Pure Rust ZK compiler — no circom, no snarkjs, no Node.js. Groth16 + PLONK + zkML + Recursive Proofs. EIP-197. Foundry deploy."
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/zkarchitect/zkforge"
+readme = "../README.md"
+categories = ["cryptography", "compilers", "development-tools"]
+keywords = ["zero-knowledge", "zk", "groth16", "plonk", "zkml", "ethereum", "solidity"]
 
 [dependencies]
 zkforge-compiler = { path = "../compiler" }
