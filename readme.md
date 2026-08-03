@@ -22,7 +22,7 @@ ZKForge compiles a high-level DSL into zero-knowledge proof circuits — entirel
 |---|---|---|
 | **Language** | Pure Rust 🦀 | Rust DSL + JavaScript runtime |
 | **Install** | `cargo install --git https://github.com/zkarchitect/zkforge.git` | Node.js + npm + circom + snarkjs |
-| **Prove time** (simple) | **<0.1s** ⚡ | ~0.3s |
+| **Prove time** (simple) | **<0.1s** ⚡ | ~0.3s (with Node.js) |
 | **Proof size** | 128 B | ~128 B |
 | **Verifier** | Solidity (EIP-197) + Foundry deploy | Solidity (manual deploy) |
 | **Proof systems** | Groth16 + PLONK | Groth16 + PLONK |
@@ -46,8 +46,8 @@ prove {
 }
 EOF
 
-# Generate a proof (<0.1s)
-zkforge prove prove_age.zkf
+# Generate a proof
+zkforge prove-native prove_age.zkf -w witness.json
 
 # Deploy verifier to any EVM chain
 zkforge deploy prove_age.zkf --chain-id 11155111
@@ -79,14 +79,14 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 ## 📦 Features
 
 - **Groth16 Proving** — Native arkworks backend, BN254 curve, EIP-197 compatible
-- **PLONK Proving** — KZG polynomial commitments, 3-gate universal circuit
-- **Recursive Proofs** — Compose proofs natively
+- **PLONK Proving** — KZG polynomial commitments, 3-gate universal circuit, Fiat-Shamir
+- **Recursive Proofs** — Fold multiple proofs into one for batch verification
 - **zkML** — Zero-knowledge neural network inference (ReLU, softmax, field-aware)
 - **Solidity Verifier** — Auto-generated, EIP-197, compilable with solc 0.8.x
 - **Foundry Deploy** — One command: verifier + deployment script + test
 - **Auto-Shielding** — Wrap any Solidity contract with ZK privacy
-- **ECDSA Verification** — Native signature checks in-circuit
-- **Merkle Proofs** — Tree membership without revealing the path
+- **ECDSA Verification** — Signature checks via k256, committed in-circuit via Poseidon
+- **Merkle Proofs** — Tree membership via 73-round Poseidon hash chain
 - **Crypto Primitives** — Poseidon hashing, field arithmetic
 
 ## 📂 Project Structure

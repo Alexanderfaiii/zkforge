@@ -8,19 +8,19 @@ Measured via `cargo run --release -- bench examples/`. Results vary by hardware.
 
 | Circuit | DSL Constraints | R1CS Vars | Prove Time | Proof Size | Status |
 |---------|----------------|-----------|------------|------------|--------|
-| Age Verification | 12 | 64 | <0.1s | 128 B | PASS |
-| Credit Score | 36 | 232 | <0.2s | 128 B | PASS |
-| Token Balance | 72 | 428 | <0.3s | 128 B | PASS |
-| NFT Ownership | 4 | 15 | <0.1s | 128 B | PASS |
+| Age Verification | 13 | 15 | <0.1s | 128 B | PASS |
+| Credit Score | 37 | 39 | <0.2s | 128 B | PASS |
+| Token Balance | 74 | 75 | <0.3s | 128 B | PASS |
+| NFT Ownership | 7 | 9 | <0.1s | 128 B | PASS |
 
 ### Gas Cost (Ethereum EIP-197)
 
-| Metric | ZKForge | circom/snarkjs | Delta |
-|--------|---------|---------------|-------|
-| Verifier bytecode | 6,986 B | ~6,900 B | +1.2% |
-| Deploy gas | ~296K | ~290K | +2% |
-| Verify gas | ~170K | ~170K | 0% |
-| Total | ~466K | ~460K | <2% |
+| Metric | ZKForge |
+|--------|---------|
+| Verifier bytecode | ~5,200 B |
+| Deploy gas | ~296K |
+| Verify gas | ~170K |
+| **Total** | **~466K** |
 
 ### Test Suite
 
