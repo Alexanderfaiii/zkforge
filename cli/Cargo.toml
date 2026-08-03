@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/zkarchitect/zkforge"
 readme = "../README.md"
 categories = ["cryptography", "compilers", "development-tools"]
-keywords = ["zero-knowledge", "zk", "groth16", "plonk", "zkml", "ethereum", "solidity"]
+keywords = ["zero-knowledge", "groth16", "plonk", "solidity", "foundry"]
 
 [dependencies]
 zkforge-compiler = { version = "1.1.0", path = "../compiler" }
