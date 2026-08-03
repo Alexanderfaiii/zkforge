@@ -119,6 +119,13 @@ PLONK, crypto primitives, recursive prover, auto-shield, zkML, deployment.
 
 Many tests include adversarial counterexamples: wrong inputs produce rejected proofs.
 
+## 👥 Community
+
+- 📣 [Introducing ZKForge: A Pure Rust ZK Compiler](https://github.com/zkarchitect/zkforge/discussions/14) — start here!
+- 🐛 [Bug Reports](https://github.com/zkarchitect/zkforge/issues/new?template=bug_report.yml)
+- 💡 [Feature Requests](https://github.com/zkarchitect/zkforge/issues/new?template=feature_request.yml)
+- 🔬 [Technical Paper](TECHNICAL_PAPER.md) — Architecture, protocols, security review
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zkarchitect/zkforge&type=Date)](https://star-history.com/#zkarchitect/zkforge&Date)
