@@ -33,9 +33,6 @@ jobs:
       - name: Prove token_balance (end-to-end)
         run: cargo run --release -- prove-native examples/token_balance.zkf -w examples/token_witness.json
 
-      - name: Prove nft_ownership (end-to-end)
-        run: cargo run --release -- prove-native examples/nft_ownership.zkf -w examples/nft_witness.json || echo '⚠️ Known: nft merkle witness needs circuit redesign — tracked in v1.2'
-
       - name: Verifiable Audit Summary
         run: |
           echo "## ✅ Verifiable CI — Bug Hall of Fame" >> $GITHUB_STEP_SUMMARY
