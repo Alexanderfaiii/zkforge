@@ -3,25 +3,27 @@
 ## Now (v1.1.0)
 
 - [x] Groth16 proving (BN254, EIP-197)
-- [x] PLONK proving (KZG, 3-gate universal circuit) — **Fiat-Shamir added in v1.1.0**
+- [x] PLONK proving (KZG, 3-gate universal circuit) — **Fiat-Shamir implemented in v1.1.0**
 - [x] Recursive proof folding for batch verification
 - [x] zkML — neural network inference in zero knowledge
 - [x] Solidity verifier generation (solc 0.8.x)
 - [x] One-command Foundry deployment
 - [x] Auto-shielding — wrap any Solidity contract with ZK privacy
 - [x] 128/128 tests (adversarial counterexamples)
-- [x] Internal security review — 3 critical bugs found and fixed
+- [x] Internal security review — 4 critical bugs found and fixed
 - [x] 15-page technical paper (TECHNICAL_PAPER.md)
-- [x] Grant proposal (GRANT_PROPOSAL.md)
+- [x] crates.io: `cargo install zkforge` ✅
+- [x] Code coverage in CI (tarpaulin)
+- [x] PR to arkworks (groth16#97 — adversarial test patterns)
+- [x] 4/4 example circuits passing end-to-end
 
 ## Next (v1.2)
 
-- [ ] Fix comparison constraints with literal operands
-- [ ] Fix remaining example circuits (credit_score, token_balance, nft_ownership)
-- [ ] Extend CI: prove-native all 6 circuits on every push
-- [ ] Code coverage badge + 85%+ line coverage
-- [ ] Reproducible cross-tool benchmark: ZKForge vs circom 2.x
 - [ ] Full ECDSA verification inside R1CS circuit
+- [ ] Reproducible cross-tool benchmark: ZKForge vs circom 2.x
+- [ ] VS Code extension — syntax highlighting + snippets
+- [ ] Gitcoin Grant — community funding round
+- [ ] arkworks PR #97 — await/maintain review
 
 ## Medium Term (v1.3 — v2.0)
 
