@@ -497,16 +497,25 @@ pub fn prove(
     let bp = Evaluations::from_vec_and_domain(b_vals.clone(), domain).interpolate();
     let cp = Evaluations::from_vec_and_domain(c_vals.clone(), domain).interpolate();
 
-    // Fiat-Shamir: challenges
+    // Fiat-Shamir: commit to wires first, then derive permutation challenges
     use crate::crypto::Transcript;
     let mut transcript = Transcript::new("plonk");
-    // Commitments (computed below, but we need F-S order)
+
+    // --- Commit to wire polynomials ---
+    let ac = commit_poly(&ap, &pk.srs);
+    let bc = commit_poly(&bp, &pk.srs);
+    let cc = commit_poly(&cp, &pk.srs);
+
+    // --- Fiat-Shamir: absorb wire commitments, derive permutation challenges ---
+    transcript.absorb_g1(&ac);
+    transcript.absorb_g1(&bc);
+    transcript.absorb_g1(&cc);
+    let beta = transcript.challenge(); // permutation challenge from transcript
+    let gamma = transcript.challenge(); // permutation challenge from transcript
 
     // --- Permutation: identity ---
     let k1 = Fr::from(13u64);
     let k2 = Fr::from(17u64);
-    let beta = Fr::from(5u64); // permutation challenge (fixed for now; real protocol uses F-S)
-    let gamma = Fr::from(7u64);
 
     let mut z_vals = vec![Fr::one(); n]; // z_0 = 1
     for i in 0..(n - 1) {
@@ -562,23 +571,13 @@ pub fn prove(
         DensePolynomial::zero()
     };
 
-    // --- Commitments ---
-    let (ac, bc, cc, zc) = (
-        commit_poly(&ap, &pk.srs),
-        commit_poly(&bp, &pk.srs),
-        commit_poly(&cp, &pk.srs),
-        commit_poly(&zp, &pk.srs),
-    );
-    let (tlc, tmc, thc) = (
-        commit_poly(&t_lo, &pk.srs),
-        commit_poly(&t_mid, &pk.srs),
-        commit_poly(&t_hi, &pk.srs),
-    );
+    // --- Commit z polynomial and quotient parts ---
+    let zc = commit_poly(&zp, &pk.srs);
+    let tlc = commit_poly(&t_lo, &pk.srs);
+    let tmc = commit_poly(&t_mid, &pk.srs);
+    let thc = commit_poly(&t_hi, &pk.srs);
 
-    // --- Fiat-Shamir: derive challenges ---
-    transcript.absorb_g1(&ac);
-    transcript.absorb_g1(&bc);
-    transcript.absorb_g1(&cc);
+    // --- Fiat-Shamir: absorb z and t commitments, derive evaluation challenges ---
     transcript.absorb_g1(&zc);
     transcript.absorb_g1(&tlc);
     transcript.absorb_g1(&tmc);
@@ -674,6 +673,8 @@ pub fn verify(vk: &PlonkVerifyingKey, proof: &PlonkProof, pi: &[Fr]) -> Result<b
     transcript.absorb_g1(&proof.a_comm);
     transcript.absorb_g1(&proof.b_comm);
     transcript.absorb_g1(&proof.c_comm);
+    let beta = transcript.challenge(); // permutation challenge
+    let gamma = transcript.challenge(); // permutation challenge
     transcript.absorb_g1(&proof.z_comm);
     transcript.absorb_g1(&proof.t_lo_comm);
     transcript.absorb_g1(&proof.t_mid_comm);
@@ -704,8 +705,6 @@ pub fn verify(vk: &PlonkVerifyingKey, proof: &PlonkProof, pi: &[Fr]) -> Result<b
     // 2. Permutation check: z(zeta*omega) * num(zeta) == z(zeta) * den(zeta)
     let k1 = Fr::from(13u64);
     let k2 = Fr::from(17u64);
-    let beta = Fr::from(5u64);
-    let gamma = Fr::from(7u64);
 
     let zeta = z_chal;
     let numer = (proof.a_eval + beta * zeta * k1 + gamma)
