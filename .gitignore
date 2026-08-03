@@ -26,6 +26,12 @@ Thumbs.db
 /shielded/
 /shield_test/
 
+# Benchmark build artifacts (circom *.r1cs, *.wasm, *.sym, and NUL)
+/benchmarks/capable/circom/*.r1cs
+/benchmarks/capable/circom/*.wasm
+/benchmarks/capable/circom/*.sym
+/benchmarks/capable/circom/NUL
+
 # Local / scratch
 .git-credentials
 /pw/
