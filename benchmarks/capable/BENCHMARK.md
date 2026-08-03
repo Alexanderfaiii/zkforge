@@ -11,7 +11,7 @@
 | age_verify | 13 | 15 | 0.04s | 128 B | 5,209 B | ✅ |
 | credit_score | 36 | 38 | 0.05s | 128 B | 5,215 B | ✅ |
 | token_balance | 74 | 76 | 0.08s | 128 B | 5,213 B | ✅ |
-| nft_ownership | — | — | — | — | — | ⚠️ Circuit redesign needed |
+| nft_ownership | 5 | 7 | 0.03s | 128 B | 5,213 B | ✅ |
 
 > **Total time** = setup + witness solving + Groth16 proving + verification.  
 > **Proof size** is constant (128 B) regardless of circuit size — property of Groth16.  

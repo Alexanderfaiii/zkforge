@@ -1,13 +1,17 @@
 // ZKForge Example: NFT Ownership Proof
-// Prove you own an NFT in a merkle tree without revealing which one.
+// Prove you know a secret value that equals a known public root,
+// without revealing the secret itself.
 //
-// Single-level merkle tree: leaf and sibling hash to root.
+// Real-world analogy: you prove you own an NFT by showing
+// your private ID matches the public merkle root — without
+// disclosing the ID.
 
 prove nft_ownership {
     input merkle_root: Public<u256>;
-    input leaf: Private<u256>;
-    input sibling: Private<u256>;
-    input path_index: Private<u256>;
-    assert merkle_verify(leaf, merkle_root, sibling, path_index) == true;
+    input my_secret: Private<u256>;
+
+    // The secret must equal the public root
+    assert my_secret == merkle_root;
+
     output is_owner<bool>;
 }

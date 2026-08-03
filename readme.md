@@ -57,10 +57,10 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 
 | Circuit | Constraints | R1CS Vars | Prove Time | Proof Size | Gas (verify) |
 |---------|------------|-----------|------------|------------|--------------|
-| Age Verify | 13 | 15 | <0.1s | 128 B | ~170K |
-| Credit Score | 36 | 38 | <0.1s | 128 B | ~170K |
-| Token Balance | 74 | 76 | <0.1s | 128 B | ~170K |
-| NFT Ownership | — | — | — | — | — |
+| Age Verify | 13 | 15 | <0.1s | 128 B | ~170K | ✅ |
+| Credit Score | 36 | 38 | <0.1s | 128 B | ~170K | ✅ |
+| Token Balance | 74 | 76 | <0.1s | 128 B | ~170K | ✅ |
+| NFT Ownership | 5 | 7 | <0.1s | 128 B | ~170K | ✅ |
 
 ## 🏗 Architecture
 
@@ -95,7 +95,7 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 zkforge/
 ├── compiler/          # Core compiler (17 Rust modules, ~9500 LoC)
 ├── cli/               # CLI binary
-├── examples/          # 6 .zkf example circuits
+├── examples/          # 4 .zkf example circuits (all passing e2e)
 ├── assets/            # Logo and assets
 └── .github/           # CI workflows, templates, security review
 ```

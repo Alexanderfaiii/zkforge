@@ -1,1 +1,1 @@
-{"private":{"leaf":"1","sibling":"2","path_index":"0"},"public":{"merkle_root":"0"}}
+{"private":{"my_secret":"42"},"public":{"merkle_root":"42"}}
