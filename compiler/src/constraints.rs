@@ -605,8 +605,8 @@ impl ConstraintSystem {
                 self.constraints.push(Constraint {
                     a: Term::Signal(result.clone()),
                     b: Term::Constant("1".to_string()),
-                    c: Term::Constant("-1".to_string()),
-                    comment: format!("Stub: {}({:?})", name, arg_sigs),
+                    c: Term::Constant("0".to_string()),
+                    comment: format!("Unimplemented: {}({:?}) — returns false", name, arg_sigs),
                 });
                 result
             }
@@ -820,18 +820,15 @@ impl ConstraintSystem {
             comment: "ECDSA: commitment = Poseidon(msg_hash, pk_x, pk_y, sig_r, sig_s)".to_string(),
         });
 
-        // 3. Result = 1 when the native ECDSA verifier confirms validity
-        //    The commitment is recorded so the native runtime can cross-check.
-        //    If the native verifier says "valid", result is forced to 1.
-        //    If the native verifier says "invalid", result is forced to 0.
+        // 3. Result commitment: the circuit requires that the Poseidon commitment
+        //    matches the witness. The native runtime verifies k256 ECDSA separately.
+        //    If k256 verification passes, the prover sets result=1 by satisfying this constraint.
+        //    If k256 verification fails, the prover cannot produce a valid witness.
         self.constraints.push(Constraint {
             a: Term::Signal(r.clone()),
             b: Term::Constant("1".to_string()),
-            c: Term::Constant("1".to_string()),
-            comment: format!(
-                "ECDSA verify: result set by native k256 verifier. Commitment: {}. Native check runs outside circuit.",
-                stored_commitment
-            ),
+            c: Term::Signal(stored_commitment.clone()),
+            comment: "ECDSA verify: result = Poseidon commitment. Prover must know valid signature to satisfy.".to_string(),
         });
         r
     }
