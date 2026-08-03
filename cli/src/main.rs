@@ -1139,16 +1139,22 @@ Write-Host "   {name}Verifier.sol    — Solidity verifier"
 }
 
 fn cmd_init(name: &str, template: &str) -> anyhow::Result<()> {
-    let template_content = match template {
-        "age" => include_str!("../../examples/age_verify.zkf"),
-        "nft" => include_str!("../../examples/nft_ownership.zkf"),
-        "credit" => include_str!("../../examples/credit_score.zkf"),
-        "balance" => include_str!("../../examples/token_balance.zkf"),
-        _ => anyhow::bail!(
-            "Unknown template: {}. Available: age, nft, credit, balance",
-            template
-        ),
-    };
+    let templates: &[(&str, &str)] = &[
+        ("age", "// ZKForge Example: Age Verification\n// Prove your age is above a threshold without revealing it.\n\nprove age_verify {\n    input age: Private<u8>;\n    input min_age: Public<u8>;\n    assert age >= min_age;\n    output valid<bool>;\n}\n"),
+        ("nft", "// ZKForge Example: NFT Ownership Proof\n// Prove you know a secret value that equals a known public root.\n\nprove nft_ownership {\n    input merkle_root: Public<u256>;\n    input my_secret: Private<u256>;\n    assert my_secret == merkle_root;\n    output is_owner<bool>;\n}\n"),
+        ("credit", "// ZKForge Example: Credit Score Threshold\n// Prove your credit score is above a threshold without revealing it.\n\nprove credit_check {\n    input credit_score: Private<u32>;\n    input min_score: Public<u32>;\n    assert credit_score >= min_score;\n    output approved<bool>;\n}\n"),
+        ("balance", "// ZKForge Example: Token Balance Proof\n// Prove you have enough tokens without revealing your exact balance.\n\nprove token_balance {\n    input balance: Private<u32>;\n    input required_amount: Public<u32>;\n    input total_supply: Public<u32>;\n    assert balance >= required_amount * 2;\n    assert balance < total_supply;\n    output eligible<bool>;\n}\n"),
+    ];
+    let template_content = templates
+        .iter()
+        .find(|t| t.0 == template)
+        .map(|t| t.1)
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "Unknown template: {}. Available: age, nft, credit, balance",
+                template
+            )
+        })?;
     fs::create_dir_all(name)?;
     let zkf_path = PathBuf::from(name).join(format!("{}.zkf", name));
     fs::write(&zkf_path, template_content)?;
