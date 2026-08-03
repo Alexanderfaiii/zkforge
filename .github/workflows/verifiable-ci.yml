@@ -28,13 +28,13 @@ jobs:
         run: cargo run --release -- prove-native examples/age_verify.zkf -w examples/age_witness.json
 
       - name: Prove credit_score (end-to-end)
-        run: cargo run --release -- prove-native examples/credit_score.zkf -w examples/credit_witness.json || echo '⚠️ Known: comparison-with-literal bug — tracked in v1.2'
+        run: cargo run --release -- prove-native examples/credit_score.zkf -w examples/credit_witness.json
 
       - name: Prove token_balance (end-to-end)
-        run: cargo run --release -- prove-native examples/token_balance.zkf -w examples/token_witness.json || echo '⚠️ Known: comparison-with-literal bug — tracked in v1.2'
+        run: cargo run --release -- prove-native examples/token_balance.zkf -w examples/token_witness.json
 
       - name: Prove nft_ownership (end-to-end)
-        run: cargo run --release -- prove-native examples/nft_ownership.zkf -w examples/nft_witness.json || echo '⚠️ Known: nft witness/merkle circuit — tracked in v1.2'
+        run: cargo run --release -- prove-native examples/nft_ownership.zkf -w examples/nft_witness.json || echo '⚠️ Known: nft merkle witness needs circuit redesign — tracked in v1.2'
 
       - name: Verifiable Audit Summary
         run: |
