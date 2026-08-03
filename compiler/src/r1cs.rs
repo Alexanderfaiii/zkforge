@@ -548,6 +548,7 @@ impl R1CSSystem {
 
             let mut sorted_c: Vec<(usize, BigUint)> = c.c.clone();
             sorted_c.sort_by_key(|(_, coeff)| coeff.clone());
+            sorted_c.reverse(); // Descending: 32, 16, 8, 4, 2, 1 — required for correct binary decomposition
 
             let sig_val = &w[sig_i] % &field;
             let mut remaining = sig_val.clone();

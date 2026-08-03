@@ -1,1 +1,1 @@
-{"private":{"merkle_proof":"42","leaf":"42"},"public":{"merkle_root":"42"}}
+{"private":{"leaf":"1","sibling":"2","path_index":"0"},"public":{"merkle_root":"0"}}
