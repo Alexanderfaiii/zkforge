@@ -10,7 +10,7 @@ categories = ["cryptography", "compilers", "development-tools"]
 keywords = ["zero-knowledge", "zk", "groth16", "plonk", "zkml", "ethereum", "solidity"]
 
 [dependencies]
-zkforge-compiler = { path = "../compiler" }
+zkforge-compiler = { version = "1.1.0", path = "../compiler" }
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
