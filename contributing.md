@@ -5,7 +5,7 @@ Thanks for your interest in contributing! This document covers how to get starte
 ## Setup
 
 ```bash
-git clone https://github.com/Alexanderfaiii/zkforge.git
+git clone https://github.com/zkarchitect/zkforge.git
 cd zkforge
 cargo build --release
 cargo test
@@ -67,4 +67,4 @@ Every new feature must include adversarial tests: wrong inputs must produce reje
 
 ## Getting Help
 
-Open a [Discussion](https://github.com/Alexanderfaiii/zkforge/discussions) or comment on an issue.
+Open a [Discussion](https://github.com/zkarchitect/zkforge/discussions) or comment on an issue.

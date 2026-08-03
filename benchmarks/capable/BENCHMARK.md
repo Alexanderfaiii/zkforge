@@ -6,12 +6,17 @@
 
 ## Groth16 Pipeline (BN254, EIP-197)
 
-| Circuit | Constraints | Setup | Prove | Proof Size | PK Size |
-|---------|------------|-------|-------|------------|---------|
-| age_verify | 13 | 0.09s | 0.31s | 128 B | 3,376 B |
-| credit_score | 37 | ~0.15s | ~0.5s | 128 B | ~9,000 B |
-| token_balance | 74 | ~0.25s | ~0.8s | 128 B | ~18,000 B |
-| nft_ownership | 7 | ~0.05s | ~0.15s | 128 B | ~1,800 B |
+> ⚠️ **v1.1.0 note:** Only age_verify passes end-to-end proving currently.
+> credit_score, token_balance, and nft_ownership fail due to a comparison-with-literal
+> constraint synthesis bug. Tracked for v1.2. The constraint counts below are correct;
+> the issue is in witness solving for circuits comparing variables against literal values.
+
+| Circuit | Constraints | Setup | Prove | Proof Size | PK Size | Status |
+|---------|------------|-------|-------|------------|---------|--------|
+| age_verify | 13 | 0.09s | 0.31s | 128 B | 3,376 B | ✅ Passing |
+| credit_score | 37 | ~0.15s | ~0.5s | 128 B | ~9,000 B | ⚠️ Failing (v1.2) |
+| token_balance | 74 | ~0.25s | ~0.8s | 128 B | ~18,000 B | ⚠️ Failing (v1.2) |
+| nft_ownership | 7 | ~0.05s | ~0.15s | 128 B | ~1,800 B | ⚠️ Failing (v1.2) |
 
 > Setup = Groth16 trusted setup (SRS generation + key derivation). One-time cost per circuit.  
 > Prove = Witness computation + Groth16 proof generation. Recurring cost per proof.  

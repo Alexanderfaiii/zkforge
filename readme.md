@@ -7,7 +7,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" alt="License" /></a>
     <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square" alt="Rust" /></a>
     <img src="https://img.shields.io/badge/tests-128%2F128-brightgreen?style=flat-square" alt="Tests" />
-    <img src="https://img.shields.io/badge/proof%20speed-<0.1s-red?style=flat-square" alt="Speed" />
+    <img src="https://img.shields.io/badge/proof%20speed-<0.1s_(age_verify)-red?style=flat-square" alt="Speed" />
     <img src="https://img.shields.io/badge/proof%20systems-Groth16%20%7C%20PLONK-blueviolet?style=flat-square" alt="Proof Systems" />
   </p>
 </div>

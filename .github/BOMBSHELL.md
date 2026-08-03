@@ -176,7 +176,7 @@
 <div class="fingerprint">
 <h3>🔐 Immutable Audit Fingerprint</h3>
 <p>The complete security audit and all adversarial test scenarios are committed to this repo. The Git history proves when each bug was found, how it was fixed, and that the fix has held.</p>
-<p class="hash">Commit: 4705fad (audit findings published) · Tests: 128/128 · Regression checks: 3/3 · CI: active</p>
+<p class="hash">Tests: 128/128 · Regression checks: 3/3 · CI: active · See TECHNICAL_PAPER.md for full post-mortem</p>
 </div>
 
 <h2 style="color:var(--gold);margin-top:36px">Try It Yourself</h2>

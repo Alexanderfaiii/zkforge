@@ -4,6 +4,6 @@
 prove credit_check {
     input credit_score: Private<u32>;
     input min_score: Public<u32>;
-    assert credit_score >= 700;
+    assert credit_score >= min_score;
     output approved<bool>;
 }

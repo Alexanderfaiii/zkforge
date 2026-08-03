@@ -28,10 +28,7 @@ See [security_audit.md](security_audit.md) for the full audit report.
 All code in this repository is in scope:
 - `compiler/src/` — compiler core (parser, constraints, R1CS, provers)
 - `cli/src/` — CLI interface
-- `circom-backend/` — circom compatibility layer
-- `shielded/` — auto-shielding logic
 
 The following are out of scope:
 - Example circuits (`examples/`) — they are demonstrations, not production
-- Generated artifacts (`output/`, `proofs/`) — they are compiler outputs
-- Stub functions (Merkle, ECDSA, Poseidon — documented as not production-ready)
+- Generated artifacts (`proofs/`) — they are compiler outputs
