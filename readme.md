@@ -3,6 +3,7 @@
   <p><strong>Pure Rust ZK Compiler — No circom. No snarkjs. No Node.js.</strong></p>
   
   <p>
+    <a href="https://crates.io/crates/zkforge"><img src="https://img.shields.io/crates/v/zkforge?style=flat-square&color=orange" alt="crates.io" /></a>
     <a href="https://github.com/zkarchitect/zkforge/actions"><img src="https://img.shields.io/github/actions/workflow/status/zkarchitect/zkforge/ci.yml?branch=main&style=flat-square" alt="CI" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" alt="License" /></a>
     <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square" alt="Rust" /></a>
@@ -21,7 +22,7 @@ ZKForge compiles a high-level DSL into zero-knowledge proof circuits — entirel
 |  | ZKForge | circom + snarkjs |
 |---|---|---|
 | **Language** | Pure Rust 🦀 | Rust DSL + JavaScript runtime |
-| **Install** | `cargo install --git https://github.com/zkarchitect/zkforge.git` | Node.js + npm + circom + snarkjs |
+| **Install** | `cargo install zkforge` | Node.js + npm + circom + snarkjs |
 | **Prove time** (simple) | **<0.1s** ⚡ | ~0.3s (with Node.js) |
 | **Proof size** | 128 B | ~128 B |
 | **Verifier** | Solidity (EIP-197) + Foundry deploy | Solidity (manual deploy) |
@@ -33,7 +34,10 @@ ZKForge compiles a high-level DSL into zero-knowledge proof circuits — entirel
 ## 🚀 Quick Start
 
 ```bash
-# Install from GitHub
+# Install from crates.io
+cargo install zkforge
+
+# Or from GitHub
 cargo install --git https://github.com/zkarchitect/zkforge.git
 
 # Write a circuit
