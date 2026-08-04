@@ -36,6 +36,9 @@ jobs:
       - name: Prove nft_ownership (end-to-end)
         run: cargo run --release -- prove-native examples/nft_ownership.zkf -w examples/nft_witness.json
 
+      - name: Prove merkle_proof (end-to-end)
+        run: cargo run --release -- prove-native examples/merkle_proof.zkf -w examples/merkle_witness.json
+
       - name: Code coverage (tarpaulin)
         run: |
           cargo install cargo-tarpaulin
