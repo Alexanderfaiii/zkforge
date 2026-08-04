@@ -776,9 +776,10 @@ fn cmd_prove_native(input: &PathBuf, witness: Option<&PathBuf>) -> anyhow::Resul
                     1000000
                 } else if sig.name.contains("total") {
                     10000000
-                } else if sig.name.contains("leaf") || sig.name.contains("secret") {
-                    42
-                } else if sig.name.contains("root") {
+                } else if sig.name.contains("leaf")
+                    || sig.name.contains("secret")
+                    || sig.name.contains("root")
+                {
                     42
                 } else if sig.name.contains("sibling") {
                     1
