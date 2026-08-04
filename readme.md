@@ -65,6 +65,7 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 | Credit Score | 36 | 38 | <0.1s | 128 B | ~170K | ✅ |
 | Token Balance | 74 | 76 | <0.1s | 128 B | ~170K | ✅ |
 | NFT Ownership | 5 | 7 | <0.1s | 128 B | ~170K | ✅ |
+| Merkle Proof | 18 | 23 | <0.1s | 128 B | ~170K | ✅ |
 | **ECDSA Verify** | **3,041** | **3,045** | **<0.8s** | **128 B** | **~290K** | ✅ |
 
 ## 🏗 Architecture
