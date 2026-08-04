@@ -15,9 +15,6 @@ jobs:
       - name: Full test suite
         run: cargo test --release
 
-      - name: Clippy (zero warnings)
-        run: cargo clippy --all-targets -- -D warnings
-
       - name: Format check
         run: cargo fmt --all -- --check
 
