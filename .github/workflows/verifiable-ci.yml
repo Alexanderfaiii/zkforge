@@ -65,7 +65,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📈 Live Verification Stats" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 128/131 tests passing" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 131/131 tests passing" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 5/5 circuits proven end-to-end on every push" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Clippy zero warnings" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ fmt clean" >> $GITHUB_STEP_SUMMARY
