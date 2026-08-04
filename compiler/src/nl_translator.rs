@@ -960,7 +960,9 @@ fn generate_zkf(entities: &[ExtractedEntity], category: &ProofCategory, text: &s
             ));
         }
         ProofCategory::Unknown => {
-            zkf.push_str("    // TODO: customize the assertion below\n");
+            // User-provided assertion without a known domain pattern.
+            // Default: equality check — user should refine after inspecting the generated .zkf file.
+            zkf.push_str("    // Review this assertion — no domain pattern detected\n");
             zkf.push_str("    assert secret >= public_val;\n");
         }
     }

@@ -172,9 +172,20 @@ pub fn prove(
         assignments.insert(name.clone(), val.clone());
     }
 
-    let witness = r1cs
-        .solve_witness(&assignments)
-        .map_err(|e| format!("Witness solve: {e}"))?;
+    // If all R1CS variables are assigned (we have complete pre-computed witness), skip the solver
+    let r1cs_var_names: std::collections::HashSet<String> = r1cs.vars.keys().cloned().collect();
+    let all_assigned = r1cs_var_names
+        .iter()
+        .all(|name| assignments.contains_key(name) || name == "ONE");
+    let witness = if all_assigned {
+        assignments.clone()
+    } else {
+        r1cs.solve_witness(&assignments).map_err(|e| {
+            format!(
+                "Cannot compute witness. Provide input values with -w witness.json.\n        {e}"
+            )
+        })?
+    };
 
     // Verify ALL constraints hold with solved witness
     for (i, c) in r1cs.constraints.iter().enumerate() {
@@ -199,13 +210,24 @@ pub fn prove(
         let m = crate::r1cs::field_modulus();
         let ab_prod = &av * &bv;
         if &ab_prod % &m != &cv % &m {
+            // Find which signal is missing/incorrect
+            let missing_names: Vec<&str> = r1cs
+                .vars
+                .iter()
+                .filter(|(name, _)| !witness.contains_key(*name) && name.as_str() != "ONE")
+                .map(|(n, _)| n.as_str())
+                .collect();
+            let hint = if !missing_names.is_empty() {
+                format!(
+                    "\n  Hint: {} witness values are missing. Provide them with -w witness.json.\n  Missing: {:?}",
+                    missing_names.len(),
+                    &missing_names[..missing_names.len().min(10)]
+                )
+            } else {
+                String::new()
+            };
             return Err(format!(
-                "Constraint {} violated: A*B={}*{}={} != C={}",
-                i,
-                av,
-                bv,
-                &av * &bv,
-                cv
+                "Constraint {i} violated.\n  A*B = {av} * {bv} = {ab_prod}\n  Expected C = {cv}\n  (This usually means witness values are missing or incorrect.){hint}",
             ));
         }
     }

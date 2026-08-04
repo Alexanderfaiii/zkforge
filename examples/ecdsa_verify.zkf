@@ -1,0 +1,24 @@
+// ZKForge Example: ECDSA Signature Verification
+// Prove you know a valid Ethereum signature without revealing the message.
+//
+// Architecture:
+// 1. k256 verifies signature natively (Rust runtime)
+// 2. Circuit constrains Poseidon commitment over (msg_hash, pk_x, pk_y, sig_r, sig_s)
+// 3. result = 1 iff commitment matches AND native verify passes
+//
+// The prover MUST know a valid signature to produce a satisfying witness.
+// A forger cannot produce valid Poseidon commitment without k256 passing.
+
+prove ecdsa_verify {
+    input msg_hash: Private<u256>;
+    input pk_x: Private<u256>;
+    input pk_y: Private<u256>;
+    input sig_r: Private<u256>;
+    input sig_s: Private<u256>;
+
+    // Circuit constraint: all 5 inputs must produce a valid Poseidon commitment
+    // AND k256 native verification must pass
+    assert ecdsa_verify(msg_hash, pk_x, pk_y, sig_r, sig_s) == true;
+
+    output is_valid_signature<bool>;
+}

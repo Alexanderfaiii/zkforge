@@ -36,6 +36,7 @@ pub mod constraints;
 pub mod crypto;
 pub mod crypto_primitives;
 pub mod deployment;
+pub mod ecdsa_witness;
 pub mod groth16_native;
 pub mod nl_translator;
 pub mod parser;

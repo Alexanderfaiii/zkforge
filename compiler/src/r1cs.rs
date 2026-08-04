@@ -291,7 +291,7 @@ impl R1CSSystem {
 
         // ===== Phase 2: Constraint propagation (iterative, multi-pass) =====
         let mut changed = true;
-        for _round in 0..200 {
+        for _round in 0..500 {
             if !changed {
                 break;
             }

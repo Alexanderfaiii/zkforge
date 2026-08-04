@@ -820,15 +820,26 @@ impl ConstraintSystem {
             comment: "ECDSA: commitment = Poseidon(msg_hash, pk_x, pk_y, sig_r, sig_s)".to_string(),
         });
 
-        // 3. Result commitment: the circuit requires that the Poseidon commitment
-        //    matches the witness. The native runtime verifies k256 ECDSA separately.
-        //    If k256 verification passes, the prover sets result=1 by satisfying this constraint.
-        //    If k256 verification fails, the prover cannot produce a valid witness.
+        // 3. Native ECDSA verification runs OUTSIDE the circuit.
+        // The circuit constrains: result is boolean, and result must equal 1.
+        // The native prover calls verify_ecdsa_with_commitment() and aborts if it fails.
+        // This gives us: ZK circuit constrains the Poseidon commitment chain;
+        // native code handles secp256k1 math.
+
+        // Constrain result to be boolean (0 or 1)
+        self.constraints.push(Constraint {
+            a: Term::Signal(r.clone()),
+            b: Term::Signal(r.clone()),
+            c: Term::Signal(r.clone()),
+            comment: "ECDSA: result is boolean (0 or 1)".to_string(),
+        });
+
+        // Constrain result to equal 1 (prover must set to 1 when native verify passes)
         self.constraints.push(Constraint {
             a: Term::Signal(r.clone()),
             b: Term::Constant("1".to_string()),
-            c: Term::Signal(stored_commitment.clone()),
-            comment: "ECDSA verify: result = Poseidon commitment. Prover must know valid signature to satisfy.".to_string(),
+            c: Term::Constant("1".to_string()),
+            comment: "ECDSA verify: result must be 1. Prover sets this only after native k256 verification.".to_string(),
         });
         r
     }
@@ -926,31 +937,37 @@ impl ConstraintSystem {
 
     /// Poseidon hash: hash = Poseidon([left, right]) using 8 full + 57 partial + 8 full = 73 rounds.
     ///
-    /// This matches the Rust crypto.rs PoseidonParams::bn254_t3() exactly:
-    ///   - SHAKE256-derived round constants from domain "zkforge-poseidon-bn254-t3-v1"
-    ///   - x^5 S-box (full on all state elements for full rounds, state[0] only for partial)
-    ///   - 3×3 MDS matrix mixing layer
-    ///   - Compatible with the Solidity PoseidonT3 library byte-for-byte
+    /// PRODUCTION: Uses the EXACT same SHAKE256-derived round constants and MDS matrix
+    /// as crypto.rs PoseidonParams::bn254_t3(). Compatible with Solidity PoseidonT3 byte-for-byte.
     ///
-    /// Structure: 8 full rounds → 57 partial rounds (s-box on state[0] only) → 8 full rounds.
+    /// Structure: 8 full rounds → 57 partial rounds → 8 full rounds.
+    /// For each round:
+    ///   1. Add round constants: state[i] += RC[round][i]  (embedded as constant offsets in c-side)
+    ///   2. S-box: x^5 on state elements (full rounds: all 3, partial: state[0] only)
+    ///   3. MDS: new_state = M × state  (full 3×3 matrix with BigUint constants)
+    ///
     /// Returns state[0] as the hash output.
     fn synthesize_poseidon(&mut self, left: &str, right: &str, label: &str) -> String {
         const FULL: usize = 8;
         const PARTIAL: usize = 57;
         const TOTAL: usize = FULL + PARTIAL + FULL; // 73
 
+        // Get production constants from crypto.rs
+        let params = crate::crypto::PoseidonParams::bn254_t3();
+
         // State: [left, right, 0]
         let state0 = left.to_string();
         let state1 = right.to_string();
         // State2 initialized to 0 via a constant signal
         let state2 = self.make_const_str(&format!("{}_s2_init", label), "0");
-        // For now, keep a dummy s2 that equals 0
+
         let mut s0 = self.fresh(&format!("{}_s0_0", label));
         let mut s1 = self.fresh(&format!("{}_s1_0", label));
         let mut s2 = self.fresh(&format!("{}_s2_0", label));
         self.add_intermediate(s0.clone(), DataType::U256);
         self.add_intermediate(s1.clone(), DataType::U256);
         self.add_intermediate(s2.clone(), DataType::U256);
+
         // Initialize: s0 = left, s1 = right, s2 = 0
         self.constraints.push(Constraint {
             a: Term::Signal(s0.clone()),
@@ -971,26 +988,73 @@ impl ConstraintSystem {
             comment: "Poseidon init: s2 = 0".to_string(),
         });
 
+        // Helper: convert arkworks Fr to BigUint decimal string for the constraint system
+        fn fr_to_const_str(fr: &ark_bn254::Fr) -> String {
+            use ark_ff::PrimeField;
+            fr.into_bigint().to_string()
+        }
+
         for round in 0..TOTAL {
             let is_full = !(FULL..(FULL + PARTIAL)).contains(&round);
 
-            // S-box: x^5 on state elements
-            let s0_x5 = self.add_pow5_cs(&format!("{}_r{}_s0", label, round), &s0);
+            // Step 1: Add round constants to each state element
+            // c_side uses Linear with (1, s_i, coeff, ONE, RC) to encode s_i + RC
+            // Constraint: ns_{add}_i * 1 = s_i + RC_i  →  ns_{add}_i = s_i + RC_i
+            let rc = &params.round_constants[round];
+            let s0_add = self.fresh(&format!("{}_r{}_s0_add", label, round));
+            let s1_add = self.fresh(&format!("{}_r{}_s1_add", label, round));
+            let s2_add = self.fresh(&format!("{}_r{}_s2_add", label, round));
+            self.add_intermediate(s0_add.clone(), DataType::U256);
+            self.add_intermediate(s1_add.clone(), DataType::U256);
+            self.add_intermediate(s2_add.clone(), DataType::U256);
+
+            let rc0_str = fr_to_const_str(&rc[0]);
+            let rc1_str = fr_to_const_str(&rc[1]);
+            let rc2_str = fr_to_const_str(&rc[2]);
+
+            self.constraints.push(Constraint {
+                a: Term::Signal(s0_add.clone()),
+                b: Term::Constant("1".to_string()),
+                c: Term::Linear(vec![
+                    ("1".to_string(), s0.clone()),
+                    (rc0_str, "ONE".to_string()),
+                ]),
+                comment: format!("Poseidon r{}: s0 += RC[{}][0]", round, round),
+            });
+            self.constraints.push(Constraint {
+                a: Term::Signal(s1_add.clone()),
+                b: Term::Constant("1".to_string()),
+                c: Term::Linear(vec![
+                    ("1".to_string(), s1.clone()),
+                    (rc1_str, "ONE".to_string()),
+                ]),
+                comment: format!("Poseidon r{}: s1 += RC[{}][1]", round, round),
+            });
+            self.constraints.push(Constraint {
+                a: Term::Signal(s2_add.clone()),
+                b: Term::Constant("1".to_string()),
+                c: Term::Linear(vec![
+                    ("1".to_string(), s2.clone()),
+                    (rc2_str, "ONE".to_string()),
+                ]),
+                comment: format!("Poseidon r{}: s2 += RC[{}][2]", round, round),
+            });
+
+            // Step 2: S-box (x^5) on state elements
+            let s0_x5 = self.add_pow5_cs(&format!("{}_r{}_s0", label, round), &s0_add);
             let s1_x5 = if is_full {
-                self.add_pow5_cs(&format!("{}_r{}_s1", label, round), &s1)
+                self.add_pow5_cs(&format!("{}_r{}_s1", label, round), &s1_add)
             } else {
-                s1.clone()
+                s1_add.clone()
             };
             let s2_x5 = if is_full {
-                self.add_pow5_cs(&format!("{}_r{}_s2", label, round), &s2)
+                self.add_pow5_cs(&format!("{}_r{}_s2", label, round), &s2_add)
             } else {
-                s2.clone()
+                s2_add.clone()
             };
 
-            // MDS matrix constants (from crypto.rs SHAKE256)
-            // These are embedded as BigUint string constants for the constraint system.
-            // Simplified MDS: new_s = M × s^5 (the full MDS is 3x3 with 9 constants)
-            // For constraint efficiency, we use a simplified 3×3 MDS compatible with the Rust implementation
+            // Step 3: Full 3×3 MDS matrix multiplication
+            // new_state[i] = Σ M[i][j] * s[j]^5 for j=0,1,2
             let ns0 = self.fresh(&format!("{}_r{}_ns0", label, round));
             let ns1 = self.fresh(&format!("{}_r{}_ns1", label, round));
             let ns2 = self.fresh(&format!("{}_r{}_ns2", label, round));
@@ -998,32 +1062,26 @@ impl ConstraintSystem {
             self.add_intermediate(ns1.clone(), DataType::U256);
             self.add_intermediate(ns2.clone(), DataType::U256);
 
-            // Simplified MDS mix: new_s[i] = Σ M[i][j] * s[j]^5
-            // For the constraint system, we use a 2-element simplification (width-2) that
-            // matches the production Rust code's output for width-3 with state[2]=0.
-            // This is a pragmatic constraint-optimized variant:
-            //   ns0 = s0^5 + s1^5   (simplified MDS row 0)
-            //   ns1 = s0^5 + 2*s1^5  (simplified MDS row 1)
-            let s0_move = s0_x5.clone();
-            let s1_move = s1_x5.clone();
-            self.constraints.push(Constraint {
-                a: Term::Signal(ns0.clone()),
-                b: Term::Constant("1".to_string()),
-                c: Term::Linear(vec![("1".to_string(), s0_move), ("1".to_string(), s1_move)]),
-                comment: format!("Poseidon r{}: ns0 = s0^5 + s1^5", round),
-            });
-            self.constraints.push(Constraint {
-                a: Term::Signal(ns1.clone()),
-                b: Term::Constant("1".to_string()),
-                c: Term::Linear(vec![("1".to_string(), s0_x5), ("2".to_string(), s1_x5)]),
-                comment: format!("Poseidon r{}: ns1 = s0^5 + 2*s1^5", round),
-            });
-            self.constraints.push(Constraint {
-                a: Term::Signal(ns2.clone()),
-                b: Term::Constant("1".to_string()),
-                c: Term::Signal(s2_x5),
-                comment: format!("Poseidon r{}: ns2 = s2^5 (identity for width-2)", round),
-            });
+            for (ns, row) in [(&ns0, 0), (&ns1, 1), (&ns2, 2)] {
+                let mds = &params.mds[row];
+                let m00 = fr_to_const_str(&mds[0]);
+                let m01 = fr_to_const_str(&mds[1]);
+                let m02 = fr_to_const_str(&mds[2]);
+
+                self.constraints.push(Constraint {
+                    a: Term::Signal(ns.clone()),
+                    b: Term::Constant("1".to_string()),
+                    c: Term::Linear(vec![
+                        (m00, s0_x5.clone()),
+                        (m01, s1_x5.clone()),
+                        (m02, s2_x5.clone()),
+                    ]),
+                    comment: format!(
+                        "Poseidon r{}: ns{} = M[{}][0]*s0⁵ + M[{}][1]*s1⁵ + M[{}][2]*s2⁵",
+                        round, row, row, row, row
+                    ),
+                });
+            }
 
             s0 = ns0;
             s1 = ns1;

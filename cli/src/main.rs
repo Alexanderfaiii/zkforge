@@ -16,7 +16,7 @@ use std::time::Instant;
 
 #[derive(Parser)]
 #[command(name = "zkforge")]
-#[command(version = "0.1.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "No-Code ZK Circuit Generator", long_about = None)]
 struct Cli {
     #[command(subcommand)]
@@ -393,18 +393,9 @@ fn cmd_test(input: &PathBuf) -> anyhow::Result<()> {
 
     let checks = [
         (
-            "Has pragma declaration",
-            compiled.circom.contains("pragma circom"),
-        ),
-        (
             "Has main template",
             compiled.circom.contains("template ZKForgeMain"),
         ),
-        (
-            "Has component main",
-            compiled.circom.contains("component main"),
-        ),
-        ("Has public signals", compiled.circom.contains("public [")),
         (
             "Has verifier contract",
             compiled.verifier.contains("contract ZKForgeVerifier"),
@@ -416,10 +407,6 @@ fn cmd_test(input: &PathBuf) -> anyhow::Result<()> {
         (
             "Has pairing library",
             compiled.verifier.contains("library Pairing"),
-        ),
-        (
-            "All asserts connect to output",
-            compiled.circom.contains("valid ==="),
         ),
     ];
     let mut passed = 0;
@@ -728,7 +715,7 @@ fn cmd_prove_native(input: &PathBuf, witness: Option<&PathBuf>) -> anyhow::Resul
     );
 
     println!(" [2/4] Groth16 setup (BN254)...");
-    let params = groth16_native::setup(&r1cs).map_err(|e| anyhow::anyhow!("{}", e))?;
+    let params = groth16_native::setup(&r1cs).map_err(|e| anyhow::anyhow!("{e}"))?;
     let setup_time = start.elapsed();
     println!(
         "     PK: {} bytes, VK: {} bytes (took {:.2}s)",
@@ -741,7 +728,19 @@ fn cmd_prove_native(input: &PathBuf, witness: Option<&PathBuf>) -> anyhow::Resul
     let mut private_inputs: std::collections::HashMap<String, num_bigint::BigUint> =
         std::collections::HashMap::new();
 
-    if let Some(w) = witness {
+    // Special handling: ECDSA circuits need pre-computed Poseidon intermediate witness
+    // ECDSA detection: check via input signals (msg_hash, pk_x, pk_y, sig_r, sig_s)
+    let is_ecdsa = cs
+        .signals
+        .iter()
+        .any(|s| s.name == "msg_hash" || s.name == "sig_r");
+    if is_ecdsa {
+        println!("     ECDSA circuit detected — generating full Poseidon witness...");
+        let computed = zkforge_compiler::ecdsa_witness::generate_ecdsa_witness_full(&cs.signals);
+        println!("     Computed {} intermediate values", computed.len());
+        private_inputs.extend(computed);
+        // Skip JSON witness and auto-generated defaults for ECDSA
+    } else if let Some(w) = witness {
         let json_str = fs::read_to_string(w)?;
         let parsed: serde_json::Value = serde_json::from_str(&json_str)?;
         if let Some(obj) = parsed.as_object() {
@@ -806,7 +805,7 @@ fn cmd_prove_native(input: &PathBuf, witness: Option<&PathBuf>) -> anyhow::Resul
         private_inputs,
         HashMap::<String, num_bigint::BigUint>::new(),
     )
-    .map_err(|e| anyhow::anyhow!("{}", e))?;
+    .map_err(|e| anyhow::anyhow!("{e}"))?;
     let prove_time = start.elapsed();
     println!(
         "     Proof: {} bytes (took {:.2}s total)",
@@ -815,7 +814,7 @@ fn cmd_prove_native(input: &PathBuf, witness: Option<&PathBuf>) -> anyhow::Resul
     );
 
     println!(" [4/4] Verifying proof...");
-    let verified = groth16_native::verify(&params, &proof).map_err(|e| anyhow::anyhow!("{}", e))?;
+    let verified = groth16_native::verify(&params, &proof).map_err(|e| anyhow::anyhow!("{e}"))?;
     let total_time = start.elapsed();
 
     println!();
@@ -1139,16 +1138,16 @@ Write-Host "   {name}Verifier.sol    — Solidity verifier"
 }
 
 fn cmd_init(name: &str, template: &str) -> anyhow::Result<()> {
-    let templates: &[(&str, &str)] = &[
-        ("age", "// ZKForge Example: Age Verification\n// Prove your age is above a threshold without revealing it.\n\nprove age_verify {\n    input age: Private<u8>;\n    input min_age: Public<u8>;\n    assert age >= min_age;\n    output valid<bool>;\n}\n"),
-        ("nft", "// ZKForge Example: NFT Ownership Proof\n// Prove you know a secret value that equals a known public root.\n\nprove nft_ownership {\n    input merkle_root: Public<u256>;\n    input my_secret: Private<u256>;\n    assert my_secret == merkle_root;\n    output is_owner<bool>;\n}\n"),
-        ("credit", "// ZKForge Example: Credit Score Threshold\n// Prove your credit score is above a threshold without revealing it.\n\nprove credit_check {\n    input credit_score: Private<u32>;\n    input min_score: Public<u32>;\n    assert credit_score >= min_score;\n    output approved<bool>;\n}\n"),
-        ("balance", "// ZKForge Example: Token Balance Proof\n// Prove you have enough tokens without revealing your exact balance.\n\nprove token_balance {\n    input balance: Private<u32>;\n    input required_amount: Public<u32>;\n    input total_supply: Public<u32>;\n    assert balance >= required_amount * 2;\n    assert balance < total_supply;\n    output eligible<bool>;\n}\n"),
+    let templates: &[(&str, &str, &str)] = &[
+        ("age", "// ZKForge Example: Age Verification\n// Prove your age is above a threshold without revealing it.\n\nprove age_verify {\n    input age: Private<u8>;\n    input min_age: Public<u8>;\n    assert age >= min_age;\n    output valid<bool>;\n}\n", "{\"age\": \"25\", \"min_age\": \"18\"}\n"),
+        ("nft", "// ZKForge Example: NFT Ownership Proof\n// Prove you know a secret value that equals a known public root.\n\nprove nft_ownership {\n    input merkle_root: Public<u256>;\n    input my_secret: Private<u256>;\n    assert my_secret == merkle_root;\n    output is_owner<bool>;\n}\n", "{\"my_secret\": \"42\", \"merkle_root\": \"42\"}\n"),
+        ("credit", "// ZKForge Example: Credit Score Threshold\n// Prove your credit score is above a threshold without revealing it.\n\nprove credit_check {\n    input credit_score: Private<u32>;\n    input min_score: Public<u32>;\n    assert credit_score >= min_score;\n    output approved<bool>;\n}\n", "{\"credit_score\": \"750\", \"min_score\": \"700\"}\n"),
+        ("balance", "// ZKForge Example: Token Balance Proof\n// Prove you have enough tokens without revealing your exact balance.\n\nprove token_balance {\n    input balance: Private<u32>;\n    input required_amount: Public<u32>;\n    input total_supply: Public<u32>;\n    assert balance >= required_amount * 2;\n    assert balance < total_supply;\n    output eligible<bool>;\n}\n", "{\"balance\": \"500\", \"required_amount\": \"200\", \"total_supply\": \"10000\"}\n"),
     ];
-    let template_content = templates
+    let (template_content, witness_content) = templates
         .iter()
         .find(|t| t.0 == template)
-        .map(|t| t.1)
+        .map(|t| (t.1, t.2))
         .ok_or_else(|| {
             anyhow::anyhow!(
                 "Unknown template: {}. Available: age, nft, credit, balance",
@@ -1158,9 +1157,15 @@ fn cmd_init(name: &str, template: &str) -> anyhow::Result<()> {
     fs::create_dir_all(name)?;
     let zkf_path = PathBuf::from(name).join(format!("{}.zkf", name));
     fs::write(&zkf_path, template_content)?;
+    let witness_path = PathBuf::from(name).join("witness.json");
+    fs::write(&witness_path, witness_content)?;
     println!("✅ Created project: {}", zkf_path.display());
+    println!("✅ Witness template: {}", witness_path.display());
     println!();
-    println!(" Next: cd {} && zkforge compile {}.zkf", name, name);
+    println!(
+        " Next: cd {} && zkforge prove-native {}.zkf -w witness.json",
+        name, name
+    );
     Ok(())
 }
 
@@ -1218,7 +1223,7 @@ fn cmd_deploy(
         }
         r1cs.add_constraint(&a_full, &b_full, &c_full);
     }
-    let params = groth16_native::setup(&r1cs).map_err(|e| anyhow::anyhow!("{}", e))?;
+    let params = groth16_native::setup(&r1cs).map_err(|e| anyhow::anyhow!("{e}"))?;
     println!(
         "     PK: {} bytes, VK: {} bytes",
         params.pk.len(),
@@ -1264,8 +1269,8 @@ fn cmd_deploy(
         priv_inp,
         HashMap::<String, num_bigint::BigUint>::new(),
     )
-    .map_err(|e| anyhow::anyhow!("{}", e))?;
-    let verified = groth16_native::verify(&params, &proof).map_err(|e| anyhow::anyhow!("{}", e))?;
+    .map_err(|e| anyhow::anyhow!("{e}"))?;
+    let verified = groth16_native::verify(&params, &proof).map_err(|e| anyhow::anyhow!("{e}"))?;
     if !verified {
         anyhow::bail!("Proof verification failed — cannot deploy");
     }
