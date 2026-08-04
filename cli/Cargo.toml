@@ -1,6 +1,6 @@
 [package]
 name = "zkforge"
-version = "1.1.5"
+version = "1.1.6"
 edition = "2021"
 description = "Pure Rust ZK compiler — no circom, no snarkjs, no Node.js. Groth16 + PLONK + zkML + Recursive Proofs. EIP-197. Foundry deploy."
 license = "MIT OR Apache-2.0"
@@ -10,7 +10,7 @@ categories = ["cryptography", "compilers", "development-tools"]
 keywords = ["zero-knowledge", "groth16", "plonk", "solidity", "foundry"]
 
 [dependencies]
-zkforge-compiler = { version = "1.1.5", path = "../compiler" }
+zkforge-compiler = { version = "1.1.6", path = "../compiler" }
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
