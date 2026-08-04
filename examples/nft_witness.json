@@ -1,1 +1,1 @@
-{"private":{"my_secret":"42"},"public":{"merkle_root":"42"}}
+{"my_secret": "42", "merkle_root": "42"}

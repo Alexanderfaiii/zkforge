@@ -172,7 +172,9 @@ pub fn prove(
         assignments.insert(name.clone(), val.clone());
     }
 
-    // If all R1CS variables are assigned (we have complete pre-computed witness), skip the solver
+    // If all R1CS variables are fully assigned (e.g., ECDSA with pre-computed
+    // Poseidon witness), skip the solver. Otherwise run the solver to compute
+    // intermediate values from user-facing inputs.
     let r1cs_var_names: std::collections::HashSet<String> = r1cs.vars.keys().cloned().collect();
     let all_assigned = r1cs_var_names
         .iter()
