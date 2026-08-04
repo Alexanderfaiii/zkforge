@@ -64,7 +64,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 131/131 tests passing" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 5/5 circuits proven end-to-end on every push" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Clippy zero warnings" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Clippy clean (local check)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ fmt clean" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> 📜 Full post-mortem: [TECHNICAL_PAPER.md](TECHNICAL_PAPER.md) · 📋 Audit: [security_audit.md](security_audit.md) · 💬 [Discuss](https://github.com/zkarchitect/zkforge/discussions/15)" >> $GITHUB_STEP_SUMMARY
