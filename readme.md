@@ -125,6 +125,18 @@ PLONK, crypto primitives, recursive prover, auto-shield, zkML, deployment.
 
 Many tests include adversarial counterexamples: wrong inputs produce rejected proofs.
 
+## 🛠 Troubleshooting
+
+### `cargo install zkforge` fails on Rust 1.95+
+
+**Cause:** Upstream incompatibility between `ark-ff 0.6.0` and Rust ≥1.95.
+
+**Workaround:** Install from GitHub source directly:
+```bash
+cargo install --git https://github.com/zkarchitect/zkforge.git
+```
+This builds the latest commit and avoids the crates.io pre-built dependency lock.
+
 ## 👥 Community
 
 - 📣 [Introducing ZKForge: A Pure Rust ZK Compiler](https://github.com/zkarchitect/zkforge/discussions/14) — start here!
