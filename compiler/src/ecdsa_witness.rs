@@ -424,8 +424,7 @@ mod tests {
 
     #[test]
     fn test_full_witness_validation() {
-        let p = "C:\\Users\\PC\\.openclaw-autoclaw\\agents\\zz\\workspace\\zkforge-v1.0.0\\examples\\ecdsa_verify.zkf";
-        let src = std::fs::read_to_string(p).unwrap();
+        let src = include_str!("../../examples/ecdsa_verify.zkf");
         let comp = crate::compile(&src, "ecdsa_verify.zkf").unwrap();
         let cs = comp.cs.as_ref().unwrap();
 
@@ -533,11 +532,9 @@ mod tests {
         assert_eq!(t3.len(), 73, "Fourth commit: {} rounds", t3.len());
     }
 
-    /// Verify witness generation produces all required signal names.
     #[test]
     fn test_witness_completeness() {
-        let p = "C:\\Users\\PC\\.openclaw-autoclaw\\agents\\zz\\workspace\\zkforge-v1.0.0\\examples\\ecdsa_verify.zkf";
-        let src = std::fs::read_to_string(p).unwrap();
+        let src = include_str!("../../examples/ecdsa_verify.zkf");
         let comp = crate::compile(&src, "ecdsa_verify.zkf").unwrap();
         let cs = comp.cs.as_ref().unwrap();
         let w = generate_ecdsa_witness_full(&cs.signals);
