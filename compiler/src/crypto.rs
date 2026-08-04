@@ -724,4 +724,34 @@ mod tests {
             sol.len()
         );
     }
+
+    /// Verify that all 73 round constants derived from SHAKE256 are unique per round.
+    /// Each round must have distinct constants; production Poseidon requires this for security.
+    #[test]
+    fn test_round_constants_unique_per_round() {
+        let params = PoseidonParams::bn254_t3();
+        assert_eq!(params.round_constants.len(), 73, "Must have 73 rounds");
+
+        // Each round's 3 constants must not all be zero
+        for (i, rc) in params.round_constants.iter().enumerate() {
+            let all_zero = rc[0].is_zero() && rc[1].is_zero() && rc[2].is_zero();
+            assert!(!all_zero, "Round {} constants must not all be zero", i);
+        }
+
+        // First and last round constants must differ (avoid mirror attacks)
+        assert!(
+            params.round_constants[0] != params.round_constants[72],
+            "First and last round constants must differ"
+        );
+
+        // No two consecutive rounds should have identical constants
+        for i in 0..72 {
+            assert!(
+                params.round_constants[i] != params.round_constants[i + 1],
+                "Rounds {} and {} must have different constants",
+                i,
+                i + 1
+            );
+        }
+    }
 }

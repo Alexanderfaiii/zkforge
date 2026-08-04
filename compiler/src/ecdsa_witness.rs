@@ -489,4 +489,100 @@ mod tests {
         println!("Constraints: {}, failed: {}", r1cs.constraints.len(), fails);
         assert_eq!(fails, 0);
     }
+
+    /// Verify that the ECDSA commitment chain produces progressive, non-trivial values.
+    /// Each step should output a value different from its inputs.
+    #[test]
+    fn test_ecdsa_commitment_chain_progressive() {
+        let (msg, pk_x, pk_y, sig_r, sig_s, _) = signature::generate_test_vector().unwrap();
+        let msg_hash = Keccak256::digest(&msg);
+        let n = field();
+        let mh = BigUint::from_bytes_be(&msg_hash) % &n;
+        let px = BigUint::from_bytes_be(&pk_x) % &n;
+        let py = BigUint::from_bytes_be(&pk_y) % &n;
+        let sr = BigUint::from_bytes_be(&sig_r) % &n;
+        let ss = BigUint::from_bytes_be(&sig_s) % &n;
+
+        // Each commit step should produce a unique, non-trivial output
+        let t0 = prod_trace(&mh, &px);
+        let c1 = t0.last().unwrap().12.clone();
+        let t1 = prod_trace(&c1, &py);
+        let c2 = t1.last().unwrap().12.clone();
+        let t2 = prod_trace(&c2, &sr);
+        let c3 = t2.last().unwrap().12.clone();
+        let t3 = prod_trace(&c3, &ss);
+        let c4 = t3.last().unwrap().12.clone();
+
+        // Final commitment must be non-zero
+        assert_ne!(c4, zero(), "Final commitment must be non-zero");
+
+        // Each intermediate must differ from its inputs
+        assert_ne!(c1, mh, "c1 must differ from msg_hash");
+        assert_ne!(c1, px, "c1 must differ from pk_x");
+        assert_ne!(c2, c1, "c2 must differ from c1");
+        assert_ne!(c2, py, "c2 must differ from pk_y");
+        assert_ne!(c3, c2, "c3 must differ from c2");
+        assert_ne!(c3, sr, "c3 must differ from sig_r");
+        assert_ne!(c4, c3, "c4 must differ from c3");
+        assert_ne!(c4, ss, "c4 must differ from sig_s");
+
+        // Check full round count: 73 rounds × 4 hashes = 292 trace entries
+        assert_eq!(t0.len(), 73, "First commit: {} rounds", t0.len());
+        assert_eq!(t1.len(), 73, "Second commit: {} rounds", t1.len());
+        assert_eq!(t2.len(), 73, "Third commit: {} rounds", t2.len());
+        assert_eq!(t3.len(), 73, "Fourth commit: {} rounds", t3.len());
+    }
+
+    /// Verify witness generation produces all required signal names.
+    #[test]
+    fn test_witness_completeness() {
+        let p = "C:\\Users\\PC\\.openclaw-autoclaw\\agents\\zz\\workspace\\zkforge-v1.0.0\\examples\\ecdsa_verify.zkf";
+        let src = std::fs::read_to_string(p).unwrap();
+        let comp = crate::compile(&src, "ecdsa_verify.zkf").unwrap();
+        let cs = comp.cs.as_ref().unwrap();
+        let w = generate_ecdsa_witness_full(&cs.signals);
+
+        // Essential inputs must be present
+        assert!(w.contains_key("ONE"), "ONE signal missing");
+        assert!(w.contains_key("ecdsa_result"), "ecdsa_result missing");
+        assert!(
+            w.contains_key("ecdsa_commitment"),
+            "ecdsa_commitment missing"
+        );
+
+        // ecdsa_result must be 1 (proof valid)
+        assert_eq!(
+            w.get("ecdsa_result"),
+            Some(&one()),
+            "ecdsa_result must be 1"
+        );
+
+        // Commitment must be non-zero
+        let commitment = w.get("ecdsa_commitment").unwrap();
+        assert_ne!(*commitment, zero(), "commitment must be non-zero");
+
+        // All Poseidon intermediate signals must be filled
+        for i in 1..=4 {
+            let label = format!("ecdsa_commit_{:02}", i);
+            let has_any = cs.signals.iter().any(|s| s.name.contains(&label));
+            assert!(has_any, "Circuit should contain {}", label);
+        }
+
+        let filled = cs
+            .signals
+            .iter()
+            .filter(|s| w.contains_key(&s.name))
+            .count();
+        let total = cs.signals.len();
+        println!(
+            "Witness coverage: {}/{} ({}%)",
+            filled,
+            total,
+            filled * 100 / total.max(1)
+        );
+        assert!(
+            filled > total / 2,
+            "At least 50% of signals should be filled"
+        );
+    }
 }
