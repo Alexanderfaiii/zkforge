@@ -425,7 +425,7 @@ mod tests {
     #[test]
     fn test_full_witness_validation() {
         let src = include_str!("../../examples/ecdsa_verify.zkf");
-        let comp = crate::compile(&src, "ecdsa_verify.zkf").unwrap();
+        let comp = crate::compile(src, "ecdsa_verify.zkf").unwrap();
         let cs = comp.cs.as_ref().unwrap();
 
         let mut r1cs = R1CSSystem::new();
@@ -535,7 +535,7 @@ mod tests {
     #[test]
     fn test_witness_completeness() {
         let src = include_str!("../../examples/ecdsa_verify.zkf");
-        let comp = crate::compile(&src, "ecdsa_verify.zkf").unwrap();
+        let comp = crate::compile(src, "ecdsa_verify.zkf").unwrap();
         let cs = comp.cs.as_ref().unwrap();
         let w = generate_ecdsa_witness_full(&cs.signals);
 
