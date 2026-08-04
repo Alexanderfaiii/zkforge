@@ -21,7 +21,7 @@ cargo test
 ## Development
 
 ```bash
-# Run all tests (should be 128/128)
+# Run all tests (should be 131/131)
 cargo test
 
 # Run with verbose output

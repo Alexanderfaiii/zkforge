@@ -344,8 +344,8 @@ All fixes were verified using independent adversarial tests following the
 3. **For every comparison (>, <, ==, !=, >=, <=):** Explicit adversarial tests
    feeding boundary values (equal, just-below, just-above).
 4. **Stubs:** All remaining stubs are documented with clear warnings.
-5. **Test suite audit:** 128/128 tests pass after fixes. Test suite was expanded
-   from 82 to 128 tests. An additional self-audit in v1.1.0 discovered C4
+5. **Test suite audit:** 131/131 tests pass after fixes. Test suite was expanded
+   from 82 to 131 tests. An additional self-audit in v1.1.0 discovered C4
    and 11 documentation/honesty issues — all resolved.
 
 ## Auditor's Note

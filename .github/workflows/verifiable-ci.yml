@@ -6,7 +6,7 @@ on:
 
 jobs:
   full-test-suite:
-    name: Full Test Suite (128 tests) + Adversarial Checks
+    name: Full Test Suite (131 tests) + Adversarial Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📈 Live Verification Stats" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 128/128 tests passing" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 128/131 tests passing" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 5/5 circuits proven end-to-end on every push" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Clippy zero warnings" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ fmt clean" >> $GITHUB_STEP_SUMMARY

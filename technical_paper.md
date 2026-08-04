@@ -24,7 +24,7 @@ ZKForge collapses this pipeline into a single Rust binary. The design philosophy
 
 1. **One binary, no runtime dependencies.** No Node.js, no circom, no snarkjs, no npm.
 2. **Compile-time security.** Constraints are synthesized at circuit construction, not deferred to witness computation.
-3. **Verifiable correctness.** Every push triggers 128 adversarial tests and an end-to-end proof verification on CI.
+3. **Verifiable correctness.** Every push triggers 131 adversarial tests and an end-to-end proof verification on CI.
 4. **Honest about limitations.** Stub functions return `false`, not `true`. Unaudited components are clearly documented.
 
 ---
@@ -119,7 +119,7 @@ ZKForge implements the Groth16 proving system using the arkworks library over th
 
 **Proving cost:** O(n) group operations where n is the number of constraints. For a typical circuit (13-74 constraints), proving takes <0.1-0.3 seconds.
 
-**Proof size:** 128 bytes (2 G₁ points + 1 G₁ point), the theoretical minimum for Groth16.
+**Proof size:** 128 Bytes (2 G₁ points + 1 G₁ point), the theoretical minimum for Groth16.
 
 **Verification:** 3 pairing checks via EIP-197 precompile. Constant gas cost (~170K).
 
@@ -285,7 +285,7 @@ Measured on Windows 11, Rust 1.x release mode, BN254 curve, via `cargo run --rel
 
 ### 6.1 Test Suite
 
-128 tests across 17 modules, including:
+131 tests across 17 modules, including:
 
 - **Parser:** valid and invalid `.zkf` inputs, edge cases
 - **Constraint synthesis:** all comparison types, arithmetic, composite expressions
@@ -335,7 +335,7 @@ A rigorous cross-tool benchmark requires circom 2.x (Rust compiler) with circoml
 
 ZKForge demonstrates that a production-capable ZK proof compiler can be built as a single, self-contained Rust binary. The system implements Groth16 and PLONK proving over BN254 with Fiat-Shamir via Poseidon, generates EIP-197-compatible Solidity verifiers, and includes unique features like built-in ZKML and auto-shielding.
 
-The internal security review identified and fixed three critical bugs that would have made all proofs forgeable. This review process, combined with 128 adversarial tests running on every push, provides a foundation of verifiable correctness.
+The internal security review identified and fixed three critical bugs that would have made all proofs forgeable. This review process, combined with 131 adversarial tests running on every push, provides a foundation of verifiable correctness.
 
 ZKForge is not yet production-ready — it lacks external audit and has known limitations in ECDSA verification and Fiat-Shamir formalization. But it is honest about these limitations, and its architecture provides a clean foundation for community audit, contribution, and eventual production deployment.
 

@@ -9,7 +9,7 @@
 - [x] Solidity verifier generation (solc 0.8.x)
 - [x] One-command Foundry deployment
 - [x] Auto-shielding — wrap any Solidity contract with ZK privacy
-- [x] 128/128 tests (adversarial counterexamples)
+- [x] 131/131 tests (adversarial counterexamples)
 - [x] Internal security review — 4 critical bugs found and fixed
 - [x] 15-page technical paper (TECHNICAL_PAPER.md)
 - [x] crates.io: `cargo install zkforge` ✅

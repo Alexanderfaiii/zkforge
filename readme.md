@@ -4,10 +4,10 @@
   
   <p>
     <a href="https://crates.io/crates/zkforge"><img src="https://img.shields.io/crates/v/zkforge?style=flat-square&color=orange" alt="crates.io" /></a>
-    <a href="https://github.com/zkarchitect/zkforge/actions"><img src="https://img.shields.io/github/actions/workflow/status/zkarchitect/zkforge/ci.yml?branch=main&style=flat-square" alt="CI" /></a>
+    <a href="https://github.com/zkarchitect/zkforge/actions"><img src="https://img.shields.io/github/actions/workflow/status/zkarchitect/zkforge/verifiable-ci.yml?branch=main&style=flat-square" alt="CI" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" alt="License" /></a>
     <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square" alt="Rust" /></a>
-    <img src="https://img.shields.io/badge/tests-128%2F128-brightgreen?style=flat-square" alt="Tests" />
+    <img src="https://img.shields.io/badge/tests-131%2F131-brightgreen?style=flat-square" alt="Tests" />
     <img src="https://img.shields.io/badge/proof%20speed-<0.1s_(age_verify)-red?style=flat-square" alt="Speed" />
     <img src="https://img.shields.io/badge/proof%20systems-Groth16%20%7C%20PLONK-blueviolet?style=flat-square" alt="Proof Systems" />
   </p>
@@ -65,16 +65,17 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 | Credit Score | 36 | 38 | <0.1s | 128 B | ~170K | ✅ |
 | Token Balance | 74 | 76 | <0.1s | 128 B | ~170K | ✅ |
 | NFT Ownership | 5 | 7 | <0.1s | 128 B | ~170K | ✅ |
+| **ECDSA Verify** | **3,041** | **3,045** | **<0.8s** | **128 B** | **~290K** | ✅ |
 
 ## 🏗 Architecture
 
 ```
-.zkf DSL → Parser (~640 LoC)
-        → Constraint Synthesizer (~870 LoC)
-        → R1CS (BigUint, BN254 field, ~550 LoC)
-        → Native Groth16 (arkworks, BN254, ~510 LoC)
-        → PLONK (KZG, 3-gate, ~400 LoC)
-        → Solidity Verifier (EIP-197, ~200 LoC)
+.zkf DSL → Parser (~770 LoC)
+        → Constraint Synthesizer (~1,380 LoC)
+        → R1CS (BigUint, BN254 field, ~630 LoC)
+        → Native Groth16 (arkworks, BN254, ~630 LoC)
+        → PLONK (KZG, 3-gate, ~500 LoC)
+        → Solidity Verifier (EIP-197, ~320 LoC)
         → Foundry Deploy Package
 ```
 
@@ -97,9 +98,9 @@ zkforge deploy prove_age.zkf --chain-id 11155111
 
 ```
 zkforge/
-├── compiler/          # Core compiler (17 Rust modules, ~9500 LoC)
+├── compiler/          # Core compiler (17 Rust modules, ~10,200 LoC)
 ├── cli/               # CLI binary
-├── examples/          # 4 .zkf example circuits (all passing e2e)
+├── examples/          # 6 .zkf example circuits (all passing e2e)
 ├── assets/            # Logo and assets
 └── .github/           # CI workflows, templates, security review
 ```
@@ -112,12 +113,12 @@ Internal security review completed. 3 critical bugs found and fixed:
 2. **Plonk witness bypass** — prover used domain elements instead of real witness values  
 3. **Inequality inversion** — `!=` check used `-1` instead of `1` for the witness
 
-All fixes verified with adversarial tests (128/128 passing). [Full audit report →](security_audit.md)
+All fixes verified with adversarial tests (131/131 passing). [Full audit report →](SECURITY_AUDIT.md)
 
 ## 🧪 Testing
 
 ```
-128 tests passing — parser, AST, constraint synthesis, R1CS, Groth16, 
+131 tests passing — parser, AST, constraint synthesis, R1CS, Groth16, 
 PLONK, crypto primitives, recursive prover, auto-shield, zkML, deployment.
 ```
 
